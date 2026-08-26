@@ -6,6 +6,8 @@ import { ExtractedEvent } from '../domain/extracted-event';
 
 const DEFAULT_EVENT_DURATION_MS = 60 * 60 * 1000;
 const DEFAULT_CALENDAR_ID = 'primary';
+// Google Calendar "Lavender" — closest match to the app's accent color (#9184d9).
+const BLURT_EVENT_COLOR_ID = '1';
 
 @Injectable()
 export class GoogleCalendarAdapter implements CalendarPort {
@@ -81,6 +83,7 @@ export class GoogleCalendarAdapter implements CalendarPort {
       summary: event.title,
       start: { dateTime: start.toISOString() },
       end: { dateTime: end.toISOString() },
+      colorId: BLURT_EVENT_COLOR_ID,
       reminders: this.toGoogleReminders(event.reminderOffsetsInMinutes),
     };
   }
