@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Groq from 'groq-sdk';
 import { EventExtractionPort } from '../domain/event-extraction.port';
@@ -143,6 +143,7 @@ function localWallClockToUtcIso(
 
 @Injectable()
 export class GroqEventExtractionAdapter implements EventExtractionPort {
+  private readonly logger = new Logger(GroqEventExtractionAdapter.name);
   private readonly client: Groq;
 
   constructor(configService: ConfigService) {
@@ -161,30 +162,41 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
       timeZone,
     );
 
-    const completion = await this.client.chat.completions.create({
-      model: LLAMA_MODEL,
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You extract calendar events from spoken transcripts. ' +
-            `The reference date-time, in the speaker's local timezone (${timeZone}), is ${localReferenceDateTime} ` +
-            "— this is when the speaker said these words, expressed on the speaker's own wall clock. " +
-            'Resolve every relative date or time expression (e.g. "next Saturday", "tomorrow", "in two hours") against this local time, ' +
-            'and always return startDateTime as a local wall-clock time in the same timezone — never convert it to UTC yourself. ' +
-            'A transcript may mention multiple events; extract each one separately. ' +
-            'Mark isAmbiguous true whenever a time expression could reasonably resolve to more than one date, or when an hour is given ' +
-            'without saying whether it is morning, afternoon, or night (e.g. "a las nueve" without further context). ' +
-            `Assign each event a category from: ${EVENT_CATEGORIES.join(', ')}.`,
+    let completion: Groq.Chat.Completions.ChatCompletion;
+    try {
+      completion = await this.client.chat.completions.create({
+        model: LLAMA_MODEL,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You extract calendar events from spoken transcripts. ' +
+              `The reference date-time, in the speaker's local timezone (${timeZone}), is ${localReferenceDateTime} ` +
+              "— this is when the speaker said these words, expressed on the speaker's own wall clock. " +
+              'Resolve every relative date or time expression (e.g. "next Saturday", "tomorrow", "in two hours") against this local time, ' +
+              'and always return startDateTime as a local wall-clock time in the same timezone — never convert it to UTC yourself. ' +
+              'A transcript may mention multiple events; extract each one separately. ' +
+              'Mark isAmbiguous true whenever a time expression could reasonably resolve to more than one date, or when an hour is given ' +
+              'without saying whether it is morning, afternoon, or night (e.g. "a las nueve" without further context). ' +
+              `Assign each event a category from: ${EVENT_CATEGORIES.join(', ')}.`,
+          },
+          { role: 'user', content: transcript },
+        ],
+        tools: [EXTRACT_EVENTS_TOOL],
+        tool_choice: {
+          type: 'function',
+          function: { name: EXTRACT_EVENTS_TOOL_NAME },
         },
-        { role: 'user', content: transcript },
-      ],
-      tools: [EXTRACT_EVENTS_TOOL],
-      tool_choice: {
-        type: 'function',
-        function: { name: EXTRACT_EVENTS_TOOL_NAME },
-      },
-    });
+      });
+    } catch (error) {
+      if (error instanceof Groq.APIError && error.status === 400) {
+        this.logger.warn(
+          `extract() -> Groq could not extract a tool call from transcript "${transcript}", treating as no events`,
+        );
+        return [];
+      }
+      throw error;
+    }
 
     const toolCall = completion.choices[0].message.tool_calls?.[0];
     if (!toolCall) {

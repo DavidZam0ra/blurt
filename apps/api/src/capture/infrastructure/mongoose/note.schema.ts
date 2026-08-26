@@ -22,7 +22,7 @@ class ExtractedEventSchema implements ExtractedEvent {
   @Prop({ required: true })
   isAmbiguous!: boolean;
 
-  @Prop({ required: true, enum: EVENT_CATEGORIES })
+  @Prop({ required: true, type: String, enum: EVENT_CATEGORIES })
   category!: ExtractedEvent['category'];
 }
 
@@ -33,6 +33,7 @@ export class NoteEntity {
 
   @Prop({
     required: true,
+    type: String,
     enum: NOTE_STATUSES,
     default: 'AwaitingConfirmation',
   })
