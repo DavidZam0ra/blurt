@@ -1,0 +1,14 @@
+---
+description: Format edited files with that app's Prettier config
+globs: "**/*.{ts,tsx,js,mjs,html,scss,css,json}"
+alwaysApply: false
+---
+
+# Format after edits
+
+Agent file writes do not trigger format-on-save. After editing matching files, run Prettier from the app that owns them:
+
+- `apps/api`: `npx prettier --write <files>` (cwd `apps/api`, printWidth 80)
+- `apps/web`: `npx prettier --write <files>` (cwd `apps/web`, printWidth 100)
+
+Leave zero `prettier/prettier` ESLint errors. Do not reformat unrelated files.
