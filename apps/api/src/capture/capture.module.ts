@@ -9,7 +9,7 @@ import { EVENT_EXTRACTION_PORT } from './domain/event-extraction.port';
 import { CALENDAR_PORT } from './domain/calendar.port';
 import { GroqTranscriptionAdapter } from './infrastructure/groq-transcription.adapter';
 import { GroqEventExtractionAdapter } from './infrastructure/groq-event-extraction.adapter';
-import { InMemoryCalendarAdapter } from './infrastructure/in-memory-calendar.adapter';
+import { GoogleCalendarAdapter } from './infrastructure/google-calendar.adapter';
 
 @Module({
   imports: [ConfigModule],
@@ -20,7 +20,7 @@ import { InMemoryCalendarAdapter } from './infrastructure/in-memory-calendar.ada
     UndoCalendarEventUseCase,
     { provide: TRANSCRIPTION_PORT, useClass: GroqTranscriptionAdapter },
     { provide: EVENT_EXTRACTION_PORT, useClass: GroqEventExtractionAdapter },
-    { provide: CALENDAR_PORT, useClass: InMemoryCalendarAdapter },
+    { provide: CALENDAR_PORT, useClass: GoogleCalendarAdapter },
   ],
 })
 export class CaptureModule {}

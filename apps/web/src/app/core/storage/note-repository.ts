@@ -42,4 +42,9 @@ export class NoteRepository {
     const db = await this.dbPromise;
     return db.get(NOTES_STORE, id);
   }
+
+  async delete(id: string): Promise<void> {
+    const db = await this.dbPromise;
+    await db.delete(NOTES_STORE, id);
+  }
 }

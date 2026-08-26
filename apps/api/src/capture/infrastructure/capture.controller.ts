@@ -14,8 +14,10 @@ import { UndoCalendarEventUseCase } from '../application/undo-calendar-event.use
 import { ExtractedEvent } from '../domain/extracted-event';
 import { ExtractEventRequestDto } from './dto/extract-event-request.dto';
 import { ConfirmEventRequestDto } from './dto/confirm-event-request.dto';
+import 'multer';
 
 const DEFAULT_CALENDAR_ID = 'primary';
+const DEFAULT_TIME_ZONE = 'UTC';
 
 @Controller('capture')
 export class CaptureController {
@@ -35,11 +37,14 @@ export class CaptureController {
       audio.buffer,
       audio.originalname,
       new Date(request.referenceDateTime),
+      request.timeZone ?? DEFAULT_TIME_ZONE,
     );
   }
 
   @Post('confirm')
-  async confirm(@Body() request: ConfirmEventRequestDto): Promise<{ externalEventId: string }> {
+  async confirm(
+    @Body() request: ConfirmEventRequestDto,
+  ): Promise<{ externalEventId: string }> {
     const externalEventId = await this.confirmEvent.execute(
       request.event,
       request.calendarId ?? DEFAULT_CALENDAR_ID,

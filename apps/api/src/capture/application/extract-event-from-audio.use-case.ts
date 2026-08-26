@@ -8,12 +8,23 @@ import type { EventExtractionPort } from '../domain/event-extraction.port';
 @Injectable()
 export class ExtractEventFromAudioUseCase {
   constructor(
-    @Inject(TRANSCRIPTION_PORT) private readonly transcriptionPort: TranscriptionPort,
-    @Inject(EVENT_EXTRACTION_PORT) private readonly eventExtractionPort: EventExtractionPort,
+    @Inject(TRANSCRIPTION_PORT)
+    private readonly transcriptionPort: TranscriptionPort,
+    @Inject(EVENT_EXTRACTION_PORT)
+    private readonly eventExtractionPort: EventExtractionPort,
   ) {}
 
-  async execute(audio: Buffer, fileName: string, referenceDateTime: Date): Promise<ExtractedEvent[]> {
+  async execute(
+    audio: Buffer,
+    fileName: string,
+    referenceDateTime: Date,
+    timeZone: string,
+  ): Promise<ExtractedEvent[]> {
     const transcript = await this.transcriptionPort.transcribe(audio, fileName);
-    return this.eventExtractionPort.extract(transcript, referenceDateTime);
+    return this.eventExtractionPort.extract(
+      transcript,
+      referenceDateTime,
+      timeZone,
+    );
   }
 }

@@ -12,6 +12,7 @@ export class CaptureApiService {
     const formData = new FormData();
     formData.append('audio', audio, 'note.webm');
     formData.append('referenceDateTime', new Date(referenceDateTime).toISOString());
+    formData.append('timeZone', Intl.DateTimeFormat().resolvedOptions().timeZone);
 
     return firstValueFrom(
       this.http.post<ExtractedEvent[]>(`${API_BASE_URL}/capture/extract`, formData),

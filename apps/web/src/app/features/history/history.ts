@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { NoteRepository } from '../../core/storage/note-repository';
 import { SyncPendingNotesUseCase } from '../../core/use-cases/sync-pending-notes.use-case';
 import { UndoVoiceNoteUseCase } from '../../core/use-cases/undo-voice-note.use-case';
+import { DeleteVoiceNoteUseCase } from '../../core/use-cases/delete-voice-note.use-case';
 import { ToastService } from '../../core/toast/toast.service';
 import { VoiceNote, VoiceNoteStatus } from '../../core/models/voice-note';
 import { EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
@@ -33,6 +34,7 @@ export class History implements OnInit {
   private readonly noteRepository = inject(NoteRepository);
   private readonly syncPendingNotes = inject(SyncPendingNotesUseCase);
   private readonly undoVoiceNote = inject(UndoVoiceNoteUseCase);
+  private readonly deleteVoiceNote = inject(DeleteVoiceNoteUseCase);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
@@ -78,6 +80,20 @@ export class History implements OnInit {
     } else if (retried?.status === VoiceNoteStatus.Error) {
       this.toast.show('Sigue fallando');
     }
+    await this.reload();
+  }
+
+  protected async delete(note: VoiceNote): Promise<void> {
+    const hasCalendarEvents = (note.externalEventIds?.length ?? 0) > 0;
+    const message = hasCalendarEvents
+      ? 'Se eliminará esta nota y sus eventos en Google Calendar. Esta acción no se puede deshacer. ¿Continuar?'
+      : 'Se eliminará esta nota permanentemente. Esta acción no se puede deshacer. ¿Continuar?';
+    if (!confirm(message)) {
+      return;
+    }
+
+    await this.deleteVoiceNote.execute(note);
+    this.toast.show('Eliminado');
     await this.reload();
   }
 }

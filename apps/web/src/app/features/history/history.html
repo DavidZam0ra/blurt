@@ -51,6 +51,7 @@
         @if (note.status === VoiceNoteStatus.Error) {
           <button type="button" class="btn btn-secondary" (click)="retry(note)">Reintentar</button>
         }
+        <button type="button" class="btn btn-ghost btn-danger" (click)="delete(note)">Eliminar</button>
       </div>
     </div>
   }

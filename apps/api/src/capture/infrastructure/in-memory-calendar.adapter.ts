@@ -11,15 +11,16 @@ import { ExtractedEvent } from '../domain/extracted-event';
 export class InMemoryCalendarAdapter implements CalendarPort {
   private readonly logger = new Logger(InMemoryCalendarAdapter.name);
 
-  async createEvent(event: ExtractedEvent, calendarId: string): Promise<string> {
+  createEvent(event: ExtractedEvent, calendarId: string): Promise<string> {
     const externalEventId = randomUUID();
     this.logger.log(
       `[stub] createEvent(calendarId=${calendarId}, title="${event.title}", startDateTime=${event.startDateTime}) -> ${externalEventId}`,
     );
-    return externalEventId;
+    return Promise.resolve(externalEventId);
   }
 
-  async deleteEvent(externalEventId: string): Promise<void> {
+  deleteEvent(externalEventId: string): Promise<void> {
     this.logger.log(`[stub] deleteEvent(externalEventId=${externalEventId})`);
+    return Promise.resolve();
   }
 }
