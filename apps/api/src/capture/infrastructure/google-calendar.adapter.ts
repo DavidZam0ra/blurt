@@ -1,40 +1,28 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { auth, calendar, calendar_v3 } from '@googleapis/calendar';
-import { CalendarPort } from '../domain/calendar.port';
+import {
+  CalendarPort,
+  GoogleCalendarCredentials,
+} from '../domain/calendar.port';
 import { ExtractedEvent } from '../domain/extracted-event';
 
 const DEFAULT_EVENT_DURATION_MS = 60 * 60 * 1000;
-const DEFAULT_CALENDAR_ID = 'primary';
 // Google Calendar "Lavender" — closest match to the app's accent color (#9184d9).
 const BLURT_EVENT_COLOR_ID = '1';
 
 @Injectable()
 export class GoogleCalendarAdapter implements CalendarPort {
   private readonly logger = new Logger(GoogleCalendarAdapter.name);
-  private readonly calendar: calendar_v3.Calendar;
-  private readonly defaultCalendarId: string;
 
-  constructor(configService: ConfigService) {
-    const oauth2Client = new auth.OAuth2({
-      clientId: configService.getOrThrow<string>('GOOGLE_CLIENT_ID'),
-      clientSecret: configService.getOrThrow<string>('GOOGLE_CLIENT_SECRET'),
-    });
-    oauth2Client.setCredentials({
-      refresh_token: configService.getOrThrow<string>('GOOGLE_REFRESH_TOKEN'),
-    });
-
-    this.calendar = calendar({ version: 'v3', auth: oauth2Client });
-    this.defaultCalendarId =
-      configService.get<string>('GOOGLE_CALENDAR_ID') ?? DEFAULT_CALENDAR_ID;
-  }
+  constructor(private readonly configService: ConfigService) {}
 
   async createEvent(
     event: ExtractedEvent,
-    calendarId: string,
+    credentials: GoogleCalendarCredentials,
   ): Promise<string> {
-    const { data } = await this.calendar.events.insert({
-      calendarId,
+    const { data } = await this.client(credentials).events.insert({
+      calendarId: credentials.calendarId,
       requestBody: this.toGoogleEvent(event),
     });
 
@@ -43,15 +31,18 @@ export class GoogleCalendarAdapter implements CalendarPort {
     }
 
     this.logger.log(
-      `createEvent(calendarId=${calendarId}, title="${event.title}", startDateTime=${event.startDateTime}) -> ${data.id}`,
+      `createEvent(calendarId=${credentials.calendarId}, title="${event.title}", startDateTime=${event.startDateTime}) -> ${data.id}`,
     );
     return data.id;
   }
 
-  async deleteEvent(externalEventId: string): Promise<void> {
+  async deleteEvent(
+    externalEventId: string,
+    credentials: GoogleCalendarCredentials,
+  ): Promise<void> {
     try {
-      await this.calendar.events.delete({
-        calendarId: this.defaultCalendarId,
+      await this.client(credentials).events.delete({
+        calendarId: credentials.calendarId,
         eventId: externalEventId,
       });
       this.logger.log(`deleteEvent(externalEventId=${externalEventId})`);
@@ -66,12 +57,23 @@ export class GoogleCalendarAdapter implements CalendarPort {
     }
   }
 
+  private client(credentials: GoogleCalendarCredentials): calendar_v3.Calendar {
+    const oauth2Client = new auth.OAuth2({
+      clientId: this.configService.getOrThrow<string>('GOOGLE_CLIENT_ID'),
+      clientSecret: this.configService.getOrThrow<string>(
+        'GOOGLE_CLIENT_SECRET',
+      ),
+    });
+    oauth2Client.setCredentials({ refresh_token: credentials.refreshToken });
+    return calendar({ version: 'v3', auth: oauth2Client });
+  }
+
   private isNotFoundError(error: unknown): boolean {
     return (
       typeof error === 'object' &&
       error !== null &&
       'code' in error &&
-      Number((error as { code: unknown }).code) === 404
+      Number(error.code) === 404
     );
   }
 

@@ -18,10 +18,17 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
-      - key: GOOGLE_REFRESH_TOKEN
+      - key: MONGODB_URI
         sync: false
-      - key: GOOGLE_CALENDAR_ID
-        value: primary
+      - key: SESSION_SECRET
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
+      - key: WEB_ORIGIN
+        fromService:
+          name: blurt-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
 
   - type: web
     name: blurt-web

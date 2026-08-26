@@ -1,10 +1,10 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NoteRepository } from '../../core/storage/note-repository';
+import { GetNoteUseCase } from '../../core/use-cases/get-note.use-case';
 import { ConfirmVoiceNoteUseCase } from '../../core/use-cases/confirm-voice-note.use-case';
 import { ToastService } from '../../core/toast/toast.service';
-import { VoiceNote, VoiceNoteStatus } from '../../core/models/voice-note';
+import { Note, NoteStatus } from '../../core/models/note';
 import { ExtractedEvent } from '../../core/models/extracted-event';
 import { EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
 import { CategoryIcon } from '../../shared/category-icon/category-icon';
@@ -21,11 +21,11 @@ const RING_CIRCUMFERENCE = 56.5;
 export class Confirm implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly noteRepository = inject(NoteRepository);
+  private readonly getNote = inject(GetNoteUseCase);
   private readonly confirmVoiceNote = inject(ConfirmVoiceNoteUseCase);
   private readonly toast = inject(ToastService);
 
-  private note?: VoiceNote;
+  private note?: Note;
   private autoConfirmIntervalId?: ReturnType<typeof setInterval>;
 
   protected readonly events = signal<ExtractedEvent[]>([]);
@@ -40,9 +40,22 @@ export class Confirm implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
-    const note = id ? await this.noteRepository.findById(id) : undefined;
+    if (!id) {
+      await this.router.navigate(['/history']);
+      return;
+    }
 
-    if (!note || note.status !== VoiceNoteStatus.AwaitingConfirmation || !note.candidateEvents) {
+    let note: Note | undefined;
+    try {
+      note = await this.getNote.execute(id);
+    } catch {
+      note = undefined;
+    }
+
+    if (
+      !note ||
+      (note.status !== NoteStatus.AwaitingConfirmation && note.status !== NoteStatus.Error)
+    ) {
       await this.router.navigate(['/history']);
       return;
     }
@@ -117,8 +130,14 @@ export class Confirm implements OnInit, OnDestroy {
     }
     this.clearAutoConfirmTimer();
     this.isSaving.set(true);
-    await this.confirmVoiceNote.execute(this.note, this.events());
-    this.toast.show('Guardado en Google Calendar');
-    await this.router.navigate(['/history']);
+    const note = await this.confirmVoiceNote.execute(this.note.id, this.events());
+    this.isSaving.set(false);
+
+    if (note.status === NoteStatus.Synced) {
+      this.toast.show('Guardado en Google Calendar');
+      await this.router.navigate(['/history']);
+    } else {
+      this.toast.show(note.errorMessage ?? 'No se pudo guardar en Google Calendar');
+    }
   }
 }

@@ -1,0 +1,44 @@
+.login-screen {
+  height: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 56px 28px 32px;
+}
+
+.login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.login-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: var(--color-accent-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-content h1 {
+  font-size: 24px;
+}
+
+.login-content p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+  max-width: 280px;
+}
+
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}

@@ -1,15 +1,12 @@
 <div class="record-screen">
   @if (!isRecording()) {
     <div class="record-header">
-      <span class="record-brand">Blurt</span>
+      <img class="record-brand" src="assets/logo-lockup.svg" alt="Blurt" />
       <button type="button" class="btn btn-icon" (click)="goToHistory()" aria-label="Historial">
         <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
           <circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.5" />
           <path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        @if (hasPending()) {
-          <span class="pending-dot"></span>
-        }
       </button>
     </div>
 
@@ -23,27 +20,42 @@
             stroke-linecap="round"
           />
         </svg>
-        <span>Sin conexión — se guardará y sincronizará después</span>
+        <span>Sin conexión — necesitas internet para grabar</span>
       </div>
     }
 
-    <div class="record-center">
-      <button type="button" class="record-button" (click)="startRecording()" aria-label="Grabar">
-        <svg viewBox="0 0 24 24" width="44" height="44" fill="none" aria-hidden="true">
-          <rect x="9" y="3" width="6" height="12" rx="3" stroke="var(--color-accent)" stroke-width="1.6" />
-          <path
-            d="M6 11a6 6 0 0 0 12 0M12 19v2"
-            stroke="var(--color-accent)"
-            stroke-width="1.6"
-            stroke-linecap="round"
-          />
-        </svg>
-      </button>
-      <div class="record-hint">
-        <div>Toca y suelta tu plan</div>
-        <div class="record-example">"Comida con Ana el jueves a las 2"</div>
+    @if (isProcessing()) {
+      <div class="record-center">
+        <div class="waveform">
+          <div class="waveform-bar" style="height:60%; animation-delay:0s"></div>
+          <div class="waveform-bar" style="height:100%; animation-delay:.15s"></div>
+          <div class="waveform-bar" style="height:45%; animation-delay:.3s"></div>
+          <div class="waveform-bar" style="height:90%; animation-delay:.45s"></div>
+          <div class="waveform-bar" style="height:65%; animation-delay:.1s"></div>
+        </div>
+        <div class="record-hint">
+          <div>Procesando tu nota…</div>
+        </div>
       </div>
-    </div>
+    } @else {
+      <div class="record-center">
+        <button type="button" class="record-button" (click)="startRecording()" aria-label="Grabar">
+          <svg viewBox="0 0 24 24" width="44" height="44" fill="none" aria-hidden="true">
+            <rect x="9" y="3" width="6" height="12" rx="3" stroke="var(--color-accent)" stroke-width="1.6" />
+            <path
+              d="M6 11a6 6 0 0 0 12 0M12 19v2"
+              stroke="var(--color-accent)"
+              stroke-width="1.6"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+        <div class="record-hint">
+          <div>Toca y suelta tu plan</div>
+          <div class="record-example">"Comida con Ana el jueves a las 2"</div>
+        </div>
+      </div>
+    }
 
     @if (errorMessage()) {
       <p class="error">{{ errorMessage() }}</p>

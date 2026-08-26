@@ -42,14 +42,14 @@
       }
 
       <div class="actions">
-        @if (note.status === VoiceNoteStatus.AwaitingConfirmation) {
+        @if (note.status === NoteStatus.AwaitingConfirmation) {
           <button type="button" class="btn btn-secondary" (click)="review(note)">Revisar</button>
         }
-        @if (note.status === VoiceNoteStatus.Synced) {
+        @if (note.status === NoteStatus.Synced) {
           <button type="button" class="btn btn-ghost" (click)="undo(note)">Deshacer</button>
         }
-        @if (note.status === VoiceNoteStatus.Error) {
-          <button type="button" class="btn btn-secondary" (click)="retry(note)">Reintentar</button>
+        @if (note.status === NoteStatus.Error) {
+          <button type="button" class="btn btn-secondary" (click)="review(note)">Reintentar</button>
         }
         <button type="button" class="btn btn-ghost btn-danger" (click)="delete(note)">Eliminar</button>
       </div>

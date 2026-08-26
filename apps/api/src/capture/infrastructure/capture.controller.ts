@@ -1,30 +1,29 @@
 import {
   Body,
   Controller,
-  Delete,
-  Param,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { AuthGuard } from '../../auth/infrastructure/auth.guard';
+import { CurrentUser } from '../../auth/infrastructure/current-user.decorator';
+import type { User } from '../../users/domain/user';
 import { ExtractEventFromAudioUseCase } from '../application/extract-event-from-audio.use-case';
-import { ConfirmEventUseCase } from '../application/confirm-event.use-case';
-import { UndoCalendarEventUseCase } from '../application/undo-calendar-event.use-case';
-import { ExtractedEvent } from '../domain/extracted-event';
+import { CreateNoteUseCase } from '../application/create-note.use-case';
 import { ExtractEventRequestDto } from './dto/extract-event-request.dto';
-import { ConfirmEventRequestDto } from './dto/confirm-event-request.dto';
+import { ExtractedEvent } from '../domain/extracted-event';
 import 'multer';
 
-const DEFAULT_CALENDAR_ID = 'primary';
 const DEFAULT_TIME_ZONE = 'UTC';
 
+@UseGuards(AuthGuard)
 @Controller('capture')
 export class CaptureController {
   constructor(
     private readonly extractEventFromAudio: ExtractEventFromAudioUseCase,
-    private readonly confirmEvent: ConfirmEventUseCase,
-    private readonly undoCalendarEvent: UndoCalendarEventUseCase,
+    private readonly createNote: CreateNoteUseCase,
   ) {}
 
   @Post('extract')
@@ -32,28 +31,15 @@ export class CaptureController {
   async extract(
     @UploadedFile() audio: Express.Multer.File,
     @Body() request: ExtractEventRequestDto,
-  ): Promise<ExtractedEvent[]> {
-    return this.extractEventFromAudio.execute(
+    @CurrentUser() user: User,
+  ): Promise<{ noteId: string; events: ExtractedEvent[] }> {
+    const events = await this.extractEventFromAudio.execute(
       audio.buffer,
       audio.originalname,
       new Date(request.referenceDateTime),
       request.timeZone ?? DEFAULT_TIME_ZONE,
     );
-  }
-
-  @Post('confirm')
-  async confirm(
-    @Body() request: ConfirmEventRequestDto,
-  ): Promise<{ externalEventId: string }> {
-    const externalEventId = await this.confirmEvent.execute(
-      request.event,
-      request.calendarId ?? DEFAULT_CALENDAR_ID,
-    );
-    return { externalEventId };
-  }
-
-  @Delete('events/:externalEventId')
-  async undo(@Param('externalEventId') externalEventId: string): Promise<void> {
-    return this.undoCalendarEvent.execute(externalEventId);
+    const note = await this.createNote.execute(user.id, events);
+    return { noteId: note.id, events };
   }
 }

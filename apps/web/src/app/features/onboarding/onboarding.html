@@ -3,14 +3,13 @@
     <div></div>
     <div class="onboarding-content">
       <div class="onboarding-icon">
-        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" aria-hidden="true">
-          <rect x="9" y="3" width="6" height="12" rx="3" stroke="var(--color-accent)" stroke-width="1.6" />
-          <path
-            d="M6 11a6 6 0 0 0 12 0M12 19v2"
-            stroke="var(--color-accent)"
-            stroke-width="1.6"
-            stroke-linecap="round"
-          />
+        <svg viewBox="0 0 64 64" width="34" height="34" fill="none" aria-label="Blurt" style="color: var(--color-accent)">
+          <rect x="25" y="9" width="14" height="25" rx="7" fill="currentColor" />
+          <path d="M19 32a13 13 0 0 0 26 0" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+          <line x1="32" y1="47" x2="32" y2="41" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+          <line x1="25" y1="50" x2="39" y2="50" stroke="currentColor" stroke-width="4" stroke-linecap="round" />
+          <line x1="46" y1="14" x2="54" y2="9" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" />
+          <line x1="48" y1="23" x2="57" y2="22" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" />
         </svg>
       </div>
       <h1>Blurt</h1>
@@ -36,7 +35,7 @@
         </svg>
       </div>
       <h2>Necesitamos el micrófono</h2>
-      <p>Grabamos en tu dispositivo, incluso sin conexión. Se sincroniza solo cuando vuelvas a tener señal.</p>
+      <p>Grabamos tu voz para convertirla en un plan. Necesitas conexión a internet para guardar tus notas.</p>
     </div>
     <div class="onboarding-actions">
       <button type="button" class="btn btn-primary btn-block" (click)="requestMicrophoneAccess()">

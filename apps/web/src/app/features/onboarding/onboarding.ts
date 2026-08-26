@@ -29,6 +29,6 @@ export class Onboarding {
 
   protected async finish(): Promise<void> {
     markOnboardingCompleted();
-    await this.router.navigate(['/']);
+    await this.router.navigate(['/login']);
   }
 }
