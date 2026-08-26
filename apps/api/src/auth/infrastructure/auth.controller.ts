@@ -77,7 +77,11 @@ export class AuthController {
       sessionToken,
       sessionCookieOptions(this.configService),
     );
-    res.redirect(this.configService.getOrThrow<string>('WEB_ORIGIN'));
+    // In production the web app is served by this same process (see
+    // ServeStaticModule), so redirecting to '/' lands back on it directly.
+    // WEB_ORIGIN is only set locally, where Angular's dev server runs on a
+    // different port.
+    res.redirect(this.configService.get<string>('WEB_ORIGIN') ?? '/');
   }
 
   @UseGuards(AuthGuard)

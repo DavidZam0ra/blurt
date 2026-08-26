@@ -11,11 +11,14 @@ function isProduction(configService: ConfigService): boolean {
 export function sessionCookieOptions(
   configService: ConfigService,
 ): CookieOptions {
-  const production = isProduction(configService);
   return {
     httpOnly: true,
-    secure: production,
-    sameSite: production ? 'none' : 'lax',
+    secure: isProduction(configService),
+    // Same-origin everywhere now (blurt-api serves the Angular build too —
+    // see ServeStaticModule in app.module.ts), so Lax is enough; no need
+    // for None, which Safari ITP and Chrome Incognito treat as a
+    // third-party cookie and drop.
+    sameSite: 'lax',
     path: '/',
     maxAge: SESSION_MAX_AGE_IN_MS,
   };
@@ -24,11 +27,10 @@ export function sessionCookieOptions(
 export function oauthStateCookieOptions(
   configService: ConfigService,
 ): CookieOptions {
-  const production = isProduction(configService);
   return {
     httpOnly: true,
-    secure: production,
-    sameSite: production ? 'none' : 'lax',
+    secure: isProduction(configService),
+    sameSite: 'lax',
     path: '/auth/google',
     maxAge: STATE_MAX_AGE_IN_MS,
   };

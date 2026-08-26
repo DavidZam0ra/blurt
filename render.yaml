@@ -4,7 +4,11 @@ services:
     runtime: node
     plan: free
     rootDir: apps/api
-    buildCommand: npm ci --include=dev && npm run build
+    # Builds the Angular app first (with API_BASE_URL='' — same-origin,
+    # since this service serves it directly, see ServeStaticModule in
+    # app.module.ts), then the API, then copies the Angular build into
+    # dist/web so the running server can find it.
+    buildCommand: cd ../web && API_BASE_URL='' node scripts/write-api-config.mjs && npm ci --include=dev && npm run build && cd ../api && npm ci --include=dev && npm run build && cp -r ../web/dist/web/browser dist/web
     startCommand: node dist/main
     healthCheckPath: /
     envVars:
@@ -24,27 +28,3 @@ services:
         sync: false
       - key: TOKEN_ENCRYPTION_KEY
         sync: false
-      - key: WEB_ORIGIN
-        fromService:
-          name: blurt-web
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
-
-  - type: web
-    name: blurt-web
-    runtime: static
-    rootDir: apps/web
-    buildCommand: node scripts/write-api-config.mjs && npm ci --include=dev && npm run build
-    staticPublishPath: dist/web/browser
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: NODE_VERSION
-        value: "22"
-      - key: API_BASE_URL
-        fromService:
-          name: blurt-api
-          type: web
-          envVarKey: RENDER_EXTERNAL_URL
