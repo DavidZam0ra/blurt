@@ -1,0 +1,40 @@
+<div class="confirm-screen">
+  <h1>Confirm event{{ events().length > 1 ? 's' : '' }}</h1>
+
+  @for (event of events(); track $index) {
+    <div class="event-card" [class.ambiguous]="event.isAmbiguous">
+      <label>
+        Title
+        <input
+          type="text"
+          [ngModel]="event.title"
+          (ngModelChange)="onTitleChange($index, $event)"
+        />
+      </label>
+
+      <label>
+        Start
+        <input
+          type="datetime-local"
+          [ngModel]="toDateTimeLocal(event.startDateTime)"
+          (ngModelChange)="onStartDateTimeChange($index, $event)"
+        />
+      </label>
+
+      @if (event.isAmbiguous) {
+        <p class="ambiguous-hint">This time could mean more than one date — please double-check it.</p>
+      }
+    </div>
+  }
+
+  @if (autoConfirmSecondsLeft(); as secondsLeft) {
+    <p class="auto-confirm-hint">
+      Auto-confirming in {{ secondsLeft }}s —
+      <button type="button" (click)="cancelAutoConfirm()">cancel</button>
+    </p>
+  }
+
+  <button type="button" class="confirm-button" [disabled]="isSaving()" (click)="confirm()">
+    Confirm
+  </button>
+</div>

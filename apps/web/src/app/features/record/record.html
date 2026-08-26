@@ -1,0 +1,14 @@
+<div class="record-screen">
+  <button
+    type="button"
+    class="record-button"
+    [class.recording]="isRecording()"
+    (click)="toggleRecording()"
+  >
+    {{ isRecording() ? 'Stop' : 'Record' }}
+  </button>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+</div>

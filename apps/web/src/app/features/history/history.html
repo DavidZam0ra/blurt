@@ -1,0 +1,36 @@
+<div class="history-screen">
+  <h1>History</h1>
+
+  @if (notes().length === 0) {
+    <p>No notes yet.</p>
+  }
+
+  @for (note of notes(); track note.id) {
+    <div class="note-card">
+      <div class="note-header">
+        <span class="status" [attr.data-status]="note.status">{{ note.status }}</span>
+        <time>{{ note.createdAt | date: 'medium' }}</time>
+      </div>
+
+      @for (event of note.candidateEvents; track $index) {
+        <p class="event-summary">{{ event.title }} — {{ event.startDateTime | date: 'medium' }}</p>
+      }
+
+      @if (note.errorMessage) {
+        <p class="error">{{ note.errorMessage }}</p>
+      }
+
+      <div class="actions">
+        @if (note.status === VoiceNoteStatus.AwaitingConfirmation) {
+          <button type="button" (click)="review(note)">Review</button>
+        }
+        @if (note.status === VoiceNoteStatus.Synced) {
+          <button type="button" (click)="undo(note)">Undo</button>
+        }
+        @if (note.status === VoiceNoteStatus.Error) {
+          <button type="button" (click)="retry(note)">Retry</button>
+        }
+      </div>
+    </div>
+  }
+</div>

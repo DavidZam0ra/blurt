@@ -1,0 +1,27 @@
+.record-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 1rem;
+}
+
+.record-button {
+  width: 12rem;
+  height: 12rem;
+  border-radius: 50%;
+  border: none;
+  background: #d92b2b;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+
+  &.recording {
+    background: #6b6b6b;
+  }
+}
+
+.error {
+  color: #d92b2b;
+}
