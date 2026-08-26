@@ -25,6 +25,15 @@
       }
     }
   ],
+  "navigationUrls": [
+    "/**",
+    "!/**/*.*",
+    "!/**/*__*",
+    "!/**/*__*/**",
+    "!/auth/**",
+    "!/notes/**",
+    "!/capture/**"
+  ],
   "dataGroups": [
     {
       "name": "api-config",
