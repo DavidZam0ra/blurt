@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import Groq from 'groq-sdk';
 import { EventExtractionPort } from '../domain/event-extraction.port';
 import { ExtractedEvent } from '../domain/extracted-event';
+import { EVENT_CATEGORIES, EventCategory } from '../domain/event-category';
 
 const LLAMA_MODEL = 'llama-3.3-70b-versatile';
 const EXTRACT_EVENTS_TOOL_NAME = 'extract_calendar_events';
@@ -34,8 +35,13 @@ const EXTRACT_EVENTS_TOOL: Groq.Chat.Completions.ChatCompletionTool = {
                 description:
                   'True when the spoken time reference has more than one reasonable interpretation given the reference date-time.',
               },
+              category: {
+                type: 'string',
+                enum: EVENT_CATEGORIES as unknown as string[],
+                description: 'Best-fit category for the event. Use "uncategorized" if none clearly applies.',
+              },
             },
-            required: ['title', 'startDateTime', 'isAmbiguous'],
+            required: ['title', 'startDateTime', 'isAmbiguous', 'category'],
           },
         },
       },
@@ -45,7 +51,7 @@ const EXTRACT_EVENTS_TOOL: Groq.Chat.Completions.ChatCompletionTool = {
 };
 
 interface ExtractedEventArguments {
-  events: Array<{ title: string; startDateTime: string; isAmbiguous: boolean }>;
+  events: Array<{ title: string; startDateTime: string; isAmbiguous: boolean; category: EventCategory }>;
 }
 
 @Injectable()
@@ -67,7 +73,8 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
             `The reference date-time is ${referenceDateTime.toISOString()} — this is when the speaker said these words, ` +
             'so resolve every relative date or time expression (e.g. "next Saturday", "tomorrow", "in two hours") against it. ' +
             'A transcript may mention multiple events; extract each one separately. ' +
-            'Mark isAmbiguous true whenever a time expression could reasonably resolve to more than one date or time.',
+            'Mark isAmbiguous true whenever a time expression could reasonably resolve to more than one date or time. ' +
+            `Assign each event a category from: ${EVENT_CATEGORIES.join(', ')}.`,
         },
         { role: 'user', content: transcript },
       ],
@@ -85,6 +92,7 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
       title: event.title,
       startDateTime: event.startDateTime,
       isAmbiguous: event.isAmbiguous,
+      category: event.category,
       reminderOffsetsInMinutes: DEFAULT_REMINDER_OFFSETS_IN_MINUTES,
     }));
   }

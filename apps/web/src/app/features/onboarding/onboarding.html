@@ -1,0 +1,48 @@
+@if (step() === 1) {
+  <div class="onboarding-screen">
+    <div></div>
+    <div class="onboarding-content">
+      <div class="onboarding-icon">
+        <svg viewBox="0 0 24 24" width="34" height="34" fill="none" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="12" rx="3" stroke="var(--color-accent)" stroke-width="1.6" />
+          <path
+            d="M6 11a6 6 0 0 0 12 0M12 19v2"
+            stroke="var(--color-accent)"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+      <h1>Blurt</h1>
+      <p>Suelta una frase. La convertimos en un plan en tu calendario — nada más.</p>
+    </div>
+    <button type="button" class="btn btn-primary btn-block" (click)="goToStep2()">Continuar</button>
+  </div>
+}
+
+@if (step() === 2) {
+  <div class="onboarding-screen">
+    <div></div>
+    <div class="onboarding-content">
+      <div class="onboarding-icon onboarding-icon-neutral">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="12" rx="3" stroke="var(--color-text)" stroke-width="1.6" />
+          <path
+            d="M6 11a6 6 0 0 0 12 0M12 19v2"
+            stroke="var(--color-text)"
+            stroke-width="1.6"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+      <h2>Necesitamos el micrófono</h2>
+      <p>Grabamos en tu dispositivo, incluso sin conexión. Se sincroniza solo cuando vuelvas a tener señal.</p>
+    </div>
+    <div class="onboarding-actions">
+      <button type="button" class="btn btn-primary btn-block" (click)="requestMicrophoneAccess()">
+        Permitir micrófono
+      </button>
+      <button type="button" class="btn btn-ghost btn-block" (click)="finish()">Ahora no</button>
+    </div>
+  </div>
+}

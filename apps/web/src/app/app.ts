@@ -1,15 +1,18 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterOutlet } from '@angular/router';
 import { SyncPendingNotesUseCase } from './core/use-cases/sync-pending-notes.use-case';
+import { ToastService } from './core/toast/toast.service';
 
 @Component({
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet],
   selector: 'app-root',
   styleUrl: './app.scss',
   templateUrl: './app.html',
 })
 export class App implements OnInit, OnDestroy {
   private readonly syncPendingNotes = inject(SyncPendingNotesUseCase);
+  protected readonly toast = inject(ToastService);
+
   private readonly onOnline = () => void this.syncPendingNotes.execute();
   private readonly onVisibilityChange = () => {
     if (document.visibilityState === 'visible') {

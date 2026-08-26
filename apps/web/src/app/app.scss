@@ -1,0 +1,16 @@
+.blurt-toast {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  bottom: 28px;
+  max-width: 360px;
+  margin: 0 auto;
+  background: var(--color-neutral-900);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  text-align: center;
+  box-shadow: var(--shadow-md);
+  animation: blurt-fade-in 0.25s ease-out;
+}

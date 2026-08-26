@@ -1,20 +1,34 @@
 <div class="confirm-screen">
-  <h1>Confirm event{{ events().length > 1 ? 's' : '' }}</h1>
+  <div class="confirm-header">
+    <button type="button" class="btn btn-icon" (click)="goBack()" aria-label="Volver">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
+        <path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
+    <h2>Confirmar plan{{ events().length > 1 ? 'es' : '' }}</h2>
+  </div>
 
   @for (event of events(); track $index) {
-    <div class="event-card" [class.ambiguous]="event.isAmbiguous">
-      <label>
-        Title
+    <div class="card event-card">
+      <span class="tag tag-neutral event-category">
+        <app-category-icon [category]="event.category" />
+        <span>{{ categoryLabels[event.category] }}</span>
+      </span>
+
+      <label class="field">
+        <label>Título</label>
         <input
+          class="input"
           type="text"
           [ngModel]="event.title"
           (ngModelChange)="onTitleChange($index, $event)"
         />
       </label>
 
-      <label>
-        Start
+      <label class="field">
+        <label>Cuándo</label>
         <input
+          class="input"
           type="datetime-local"
           [ngModel]="toDateTimeLocal(event.startDateTime)"
           (ngModelChange)="onStartDateTimeChange($index, $event)"
@@ -22,19 +36,39 @@
       </label>
 
       @if (event.isAmbiguous) {
-        <p class="ambiguous-hint">This time could mean more than one date — please double-check it.</p>
+        <div class="ambiguous-hint">
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+            <path d="M8 2 14.5 13.5H1.5L8 2Z" stroke="var(--color-accent-300)" stroke-width="1.2" stroke-linejoin="round" />
+            <path d="M8 6.5V9.5" stroke="var(--color-accent-300)" stroke-width="1.2" stroke-linecap="round" />
+            <circle cx="8" cy="11.5" r="0.6" fill="var(--color-accent-300)" />
+          </svg>
+          <p>Esta fecha podría significar más de un día — revísala antes de guardar.</p>
+        </div>
       }
     </div>
   }
 
   @if (autoConfirmSecondsLeft(); as secondsLeft) {
-    <p class="auto-confirm-hint">
-      Auto-confirming in {{ secondsLeft }}s —
-      <button type="button" (click)="cancelAutoConfirm()">cancel</button>
-    </p>
+    <div class="auto-confirm-hint">
+      <svg viewBox="0 0 24 24" width="18" height="18" class="auto-confirm-ring">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="var(--color-divider)" stroke-width="2" />
+        <circle
+          cx="12"
+          cy="12"
+          r="9"
+          fill="none"
+          stroke="var(--color-accent)"
+          stroke-width="2"
+          stroke-dasharray="56.5"
+          [style.stroke-dashoffset]="ringDashoffset()"
+        />
+      </svg>
+      <span>Confirmando en {{ secondsLeft }}s</span>
+      <button type="button" class="btn btn-ghost" (click)="cancelAutoConfirm()">Cancelar</button>
+    </div>
   }
 
-  <button type="button" class="confirm-button" [disabled]="isSaving()" (click)="confirm()">
-    Confirm
+  <button type="button" class="btn btn-primary btn-block confirm-button" [disabled]="isSaving()" (click)="confirm()">
+    Confirmar
   </button>
 </div>

@@ -1,8 +1,5 @@
-<nav class="app-nav">
-  <a routerLink="/">Record</a>
-  <a routerLink="/history">History</a>
-</nav>
+<router-outlet />
 
-<main>
-  <router-outlet />
-</main>
+@if (toast.text(); as text) {
+  <div class="blurt-toast">{{ text }}</div>
+}

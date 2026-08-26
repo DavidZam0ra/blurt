@@ -1,16 +1,20 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NoteRepository } from '../../core/storage/note-repository';
 import { ConfirmVoiceNoteUseCase } from '../../core/use-cases/confirm-voice-note.use-case';
+import { ToastService } from '../../core/toast/toast.service';
 import { VoiceNote, VoiceNoteStatus } from '../../core/models/voice-note';
 import { ExtractedEvent } from '../../core/models/extracted-event';
+import { EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
+import { CategoryIcon } from '../../shared/category-icon/category-icon';
 
 const AUTO_CONFIRM_DELAY_IN_SECONDS = 5;
+const RING_CIRCUMFERENCE = 56.5;
 
 @Component({
   selector: 'app-confirm',
-  imports: [FormsModule],
+  imports: [FormsModule, CategoryIcon],
   templateUrl: './confirm.html',
   styleUrl: './confirm.scss',
 })
@@ -19,6 +23,7 @@ export class Confirm implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly noteRepository = inject(NoteRepository);
   private readonly confirmVoiceNote = inject(ConfirmVoiceNoteUseCase);
+  private readonly toast = inject(ToastService);
 
   private note?: VoiceNote;
   private autoConfirmIntervalId?: ReturnType<typeof setInterval>;
@@ -26,6 +31,12 @@ export class Confirm implements OnInit, OnDestroy {
   protected readonly events = signal<ExtractedEvent[]>([]);
   protected readonly autoConfirmSecondsLeft = signal<number | null>(null);
   protected readonly isSaving = signal(false);
+  protected readonly categoryLabels = EVENT_CATEGORY_LABELS;
+
+  protected readonly ringDashoffset = computed(() => {
+    const secondsLeft = this.autoConfirmSecondsLeft();
+    return secondsLeft === null ? 0 : RING_CIRCUMFERENCE * (1 - secondsLeft / AUTO_CONFIRM_DELAY_IN_SECONDS);
+  });
 
   async ngOnInit(): Promise<void> {
     const id = this.route.snapshot.paramMap.get('id');
@@ -96,6 +107,10 @@ export class Confirm implements OnInit, OnDestroy {
     }
   }
 
+  protected async goBack(): Promise<void> {
+    await this.router.navigate(['/history']);
+  }
+
   protected async confirm(): Promise<void> {
     if (!this.note || this.isSaving()) {
       return;
@@ -103,6 +118,7 @@ export class Confirm implements OnInit, OnDestroy {
     this.clearAutoConfirmTimer();
     this.isSaving.set(true);
     await this.confirmVoiceNote.execute(this.note, this.events());
+    this.toast.show('Guardado en Google Calendar');
     await this.router.navigate(['/history']);
   }
 }

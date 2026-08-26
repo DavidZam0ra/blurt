@@ -36,4 +36,9 @@ export class AudioRecorderService {
       mediaRecorder.stop();
     });
   }
+
+  cancel(): void {
+    this.mediaRecorder?.stop();
+    this.stream?.getTracks().forEach((track) => track.stop());
+  }
 }
