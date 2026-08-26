@@ -20,7 +20,6 @@ import { AuthGuard, SESSION_COOKIE_NAME } from './auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import {
   oauthStateCookieOptions,
-  oauthStatePath,
   sessionCookieOptions,
 } from './cookie-options';
 import type { User } from '../../users/domain/user';
@@ -63,7 +62,7 @@ export class AuthController {
     const cookies = res.req.cookies as Record<string, string | undefined>;
     const expectedState = cookies[OAUTH_STATE_COOKIE_NAME];
     res.clearCookie(OAUTH_STATE_COOKIE_NAME, {
-      path: oauthStatePath(this.configService),
+      path: '/auth/google',
     });
 
     if (!code || !state || state !== expectedState) {

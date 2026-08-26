@@ -26,19 +26,9 @@ export class GoogleOAuthClientFactory {
   }
 
   private redirectUri(): string {
-    // In production the whole OAuth round-trip is proxied through blurt-web's
-    // own origin (render.yaml routes /api/* there to blurt-api), so an
-    // installed PWA never navigates cross-origin and iOS never kicks the
-    // user out to Safari mid-login. Locally there's no such proxy, so we
-    // talk to the API directly instead.
-    const renderExternalUrl = this.configService.get<string>(
-      'RENDER_EXTERNAL_URL',
-    );
-    if (!renderExternalUrl) {
-      return 'http://localhost:3000/auth/google/callback';
-    }
-
-    const webOrigin = this.configService.getOrThrow<string>('WEB_ORIGIN');
-    return `${webOrigin}/api/auth/google/callback`;
+    const apiOrigin =
+      this.configService.get<string>('RENDER_EXTERNAL_URL') ??
+      'http://localhost:3000';
+    return `${apiOrigin}/auth/google/callback`;
   }
 }

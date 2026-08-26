@@ -38,13 +38,13 @@ services:
     staticPublishPath: dist/web/browser
     routes:
       - type: rewrite
-        source: /api/*
-        destination: https://blurt-api.onrender.com/*
-      - type: rewrite
         source: /*
         destination: /index.html
     envVars:
       - key: NODE_VERSION
         value: "22"
       - key: API_BASE_URL
-        value: /api
+        fromService:
+          name: blurt-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
