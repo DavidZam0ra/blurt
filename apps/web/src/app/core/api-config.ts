@@ -7,7 +7,9 @@ export async function loadApiConfig(): Promise<void> {
   }
 
   const config = (await response.json()) as { apiBaseUrl?: string };
-  if (config.apiBaseUrl) {
+  // '' is a valid, intentional value (same origin, no prefix) — only skip
+  // the update when the key is genuinely absent from the JSON.
+  if (config.apiBaseUrl !== undefined) {
     API_BASE_URL = config.apiBaseUrl.replace(/\/$/, '');
   }
 }
