@@ -30,4 +30,8 @@ export class InMemoryCalendarAdapter implements CalendarPort {
     );
     return Promise.resolve();
   }
+
+  eventExists(): Promise<boolean> {
+    return Promise.resolve(true);
+  }
 }

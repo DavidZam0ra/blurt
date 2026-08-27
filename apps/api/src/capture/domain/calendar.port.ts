@@ -16,4 +16,8 @@ export interface CalendarPort {
     externalEventId: string,
     credentials: GoogleCalendarCredentials,
   ): Promise<void>;
+  eventExists(
+    externalEventId: string,
+    credentials: GoogleCalendarCredentials,
+  ): Promise<boolean>;
 }

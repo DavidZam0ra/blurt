@@ -32,7 +32,7 @@ export class NotesController {
 
   @Get()
   list(@CurrentUser() user: User): Promise<Note[]> {
-    return this.listNotes.execute(user.id);
+    return this.listNotes.execute(user);
   }
 
   @Get(':id')

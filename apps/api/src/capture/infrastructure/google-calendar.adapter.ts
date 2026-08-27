@@ -57,6 +57,26 @@ export class GoogleCalendarAdapter implements CalendarPort {
     }
   }
 
+  async eventExists(
+    externalEventId: string,
+    credentials: GoogleCalendarCredentials,
+  ): Promise<boolean> {
+    try {
+      const { data } = await this.client(credentials).events.get({
+        calendarId: credentials.calendarId,
+        eventId: externalEventId,
+      });
+      // A deleted single (non-recurring) event usually 404s, but Google
+      // sometimes keeps a tombstone around with status "cancelled" instead.
+      return data.status !== 'cancelled';
+    } catch (error) {
+      if (this.isNotFoundError(error)) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
   private client(credentials: GoogleCalendarCredentials): calendar_v3.Calendar {
     const oauth2Client = new auth.OAuth2({
       clientId: this.configService.getOrThrow<string>('GOOGLE_CLIENT_ID'),
