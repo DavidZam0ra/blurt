@@ -14,3 +14,29 @@
   box-shadow: var(--shadow-md);
   animation: blurt-fade-in 0.25s ease-out;
 }
+
+.blurt-toast-action {
+  text-align: left;
+  padding: 10px 10px 8px 14px;
+}
+
+.blurt-toast-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.blurt-toast-progress {
+  margin-top: 8px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--color-neutral-800);
+  overflow: hidden;
+}
+
+.blurt-toast-progress-bar {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.05s linear;
+}

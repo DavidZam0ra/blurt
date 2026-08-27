@@ -34,6 +34,13 @@
 
 .note-card {
   gap: 8px;
+  animation: blurt-fade-in 0.35s ease-out;
+}
+
+.note-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: color-mix(in srgb, var(--color-surface) 88%, var(--color-accent) 12%);
 }
 
 .note-header {

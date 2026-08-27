@@ -1,5 +1,15 @@
 <router-outlet />
 
-@if (toast.text(); as text) {
+@if (toast.actionToast(); as action) {
+  <div class="blurt-toast blurt-toast-action">
+    <div class="blurt-toast-row">
+      <span>{{ action.text }}</span>
+      <button type="button" class="btn btn-ghost" (click)="action.onAction()">{{ action.actionLabel }}</button>
+    </div>
+    <div class="blurt-toast-progress">
+      <div class="blurt-toast-progress-bar" [style.width.%]="toast.progress() * 100"></div>
+    </div>
+  </div>
+} @else if (toast.text(); as text) {
   <div class="blurt-toast">{{ text }}</div>
 }

@@ -171,6 +171,8 @@ p {
   padding: var(--space-3);
   border-radius: var(--radius-md);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 .card-title {
   font-family: var(--font-heading);
@@ -241,6 +243,22 @@ p {
     opacity: 1;
     transform: translateY(0);
   }
+}
+@keyframes blurt-shimmer {
+  0% {
+    background-position: -120% 0;
+  }
+  100% {
+    background-position: 120% 0;
+  }
+}
+
+/* — skeletons — */
+.skeleton-line {
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--color-neutral-800) 25%, var(--color-neutral-500) 37%, var(--color-neutral-800) 63%);
+  background-size: 400% 100%;
+  animation: blurt-shimmer 1.4s ease infinite;
 }
 
 input[type='datetime-local']::-webkit-calendar-picker-indicator {

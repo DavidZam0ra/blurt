@@ -34,11 +34,14 @@ export class History implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly notes = signal<Note[]>([]);
+  protected readonly isLoading = signal(true);
   protected readonly NoteStatus = NoteStatus;
   protected readonly categoryLabels = EVENT_CATEGORY_LABELS;
 
   async ngOnInit(): Promise<void> {
+    this.isLoading.set(true);
     await this.reload();
+    this.isLoading.set(false);
   }
 
   protected statusMeta(status: NoteStatus): StatusMeta {
@@ -63,17 +66,23 @@ export class History implements OnInit {
     await this.reload();
   }
 
-  protected async delete(note: Note): Promise<void> {
-    const hasCalendarEvents = note.externalEventIds.length > 0;
-    const message = hasCalendarEvents
-      ? 'Se eliminará esta nota y sus eventos en Google Calendar. Esta acción no se puede deshacer. ¿Continuar?'
-      : 'Se eliminará esta nota permanentemente. Esta acción no se puede deshacer. ¿Continuar?';
-    if (!confirm(message)) {
-      return;
-    }
+  protected delete(note: Note): void {
+    this.notes.update((notes) => notes.filter((n) => n.id !== note.id));
 
-    await this.deleteVoiceNote.execute(note);
-    this.toast.show('Eliminado');
-    await this.reload();
+    this.toast.showAction(
+      'Nota eliminada',
+      'Deshacer',
+      () => void this.reload(),
+      () => void this.commitDelete(note),
+    );
+  }
+
+  private async commitDelete(note: Note): Promise<void> {
+    try {
+      await this.deleteVoiceNote.execute(note);
+    } catch {
+      this.toast.show('No se pudo eliminar la nota');
+      await this.reload();
+    }
   }
 }
