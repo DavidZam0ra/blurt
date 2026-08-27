@@ -64,11 +64,12 @@
         />
       </svg>
       <span>Confirmando en {{ secondsLeft }}s</span>
-      <button type="button" class="btn btn-ghost" (click)="cancelAutoConfirm()">Cancelar</button>
+      <button type="button" class="btn btn-ghost" (click)="cancelAutoConfirm()">Editar</button>
     </div>
   }
 
-  <button type="button" class="btn btn-primary btn-block confirm-button" [disabled]="isSaving()" (click)="confirm()">
-    Confirmar
-  </button>
+  <div class="confirm-actions">
+    <button type="button" class="btn btn-secondary" [disabled]="isSaving()" (click)="cancel()">Cancelar</button>
+    <button type="button" class="btn btn-primary" [disabled]="isSaving()" (click)="confirm()">Confirmar</button>
+  </div>
 </div>

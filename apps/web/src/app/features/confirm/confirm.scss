@@ -59,6 +59,12 @@
   transform: rotate(-90deg);
 }
 
-.confirm-button {
+.confirm-actions {
+  display: flex;
+  gap: 10px;
   margin-top: auto;
+
+  .btn {
+    flex: 1;
+  }
 }

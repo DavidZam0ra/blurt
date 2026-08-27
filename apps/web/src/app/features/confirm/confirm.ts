@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GetNoteUseCase } from '../../core/use-cases/get-note.use-case';
 import { ConfirmVoiceNoteUseCase } from '../../core/use-cases/confirm-voice-note.use-case';
+import { DeleteVoiceNoteUseCase } from '../../core/use-cases/delete-voice-note.use-case';
 import { ToastService } from '../../core/toast/toast.service';
 import { Note, NoteStatus } from '../../core/models/note';
 import { ExtractedEvent } from '../../core/models/extracted-event';
@@ -23,6 +24,7 @@ export class Confirm implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly getNote = inject(GetNoteUseCase);
   private readonly confirmVoiceNote = inject(ConfirmVoiceNoteUseCase);
+  private readonly deleteVoiceNote = inject(DeleteVoiceNoteUseCase);
   private readonly toast = inject(ToastService);
 
   private note?: Note;
@@ -122,6 +124,17 @@ export class Confirm implements OnInit, OnDestroy {
 
   protected async goBack(): Promise<void> {
     await this.router.navigate(['/history']);
+  }
+
+  protected async cancel(): Promise<void> {
+    if (!this.note || this.isSaving()) {
+      return;
+    }
+    this.clearAutoConfirmTimer();
+    this.isSaving.set(true);
+    await this.deleteVoiceNote.execute(this.note);
+    this.isSaving.set(false);
+    await this.router.navigate(['/']);
   }
 
   protected async confirm(): Promise<void> {
