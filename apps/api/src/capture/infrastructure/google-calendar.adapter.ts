@@ -14,6 +14,14 @@ const BLURT_EVENT_COLOR_ID = '1';
 @Injectable()
 export class GoogleCalendarAdapter implements CalendarPort {
   private readonly logger = new Logger(GoogleCalendarAdapter.name);
+  // Keyed by refresh token: an OAuth2Client caches the access token it gets
+  // back from Google in memory, so reusing the same instance across calls
+  // (within one request and across later ones) avoids re-exchanging the
+  // refresh token for a new access token every single time.
+  private readonly clientsByRefreshToken = new Map<
+    string,
+    InstanceType<typeof auth.OAuth2>
+  >();
 
   constructor(private readonly configService: ConfigService) {}
 
@@ -78,13 +86,21 @@ export class GoogleCalendarAdapter implements CalendarPort {
   }
 
   private client(credentials: GoogleCalendarCredentials): calendar_v3.Calendar {
-    const oauth2Client = new auth.OAuth2({
-      clientId: this.configService.getOrThrow<string>('GOOGLE_CLIENT_ID'),
-      clientSecret: this.configService.getOrThrow<string>(
-        'GOOGLE_CLIENT_SECRET',
-      ),
-    });
-    oauth2Client.setCredentials({ refresh_token: credentials.refreshToken });
+    let oauth2Client = this.clientsByRefreshToken.get(
+      credentials.refreshToken,
+    );
+    if (!oauth2Client) {
+      oauth2Client = new auth.OAuth2({
+        clientId: this.configService.getOrThrow<string>('GOOGLE_CLIENT_ID'),
+        clientSecret: this.configService.getOrThrow<string>(
+          'GOOGLE_CLIENT_SECRET',
+        ),
+      });
+      oauth2Client.setCredentials({
+        refresh_token: credentials.refreshToken,
+      });
+      this.clientsByRefreshToken.set(credentials.refreshToken, oauth2Client);
+    }
     return calendar({ version: 'v3', auth: oauth2Client });
   }
 

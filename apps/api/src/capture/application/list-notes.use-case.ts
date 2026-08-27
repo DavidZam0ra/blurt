@@ -22,21 +22,32 @@ export class ListNotesUseCase {
     const notes = await this.noteRepository.listByUser(user.id);
     const credentials = this.credentialsResolver.resolve(user);
 
-    const survivors: Note[] = [];
-    for (const note of notes) {
-      if (note.status !== 'Synced' || note.externalEventIds.length === 0) {
-        survivors.push(note);
-        continue;
-      }
-
-      if (await this.wasDeletedInCalendar(note, credentials)) {
-        await this.noteRepository.delete(note.id, user.id);
-      } else {
-        survivors.push(note);
-      }
+    const checkable = notes.filter(
+      (note) => note.status === 'Synced' && note.externalEventIds.length > 0,
+    );
+    const deleted = new Set(
+      await this.filterDeletedInCalendar(checkable, credentials),
+    );
+    if (deleted.size > 0) {
+      await Promise.all(
+        [...deleted].map((noteId) => this.noteRepository.delete(noteId, user.id)),
+      );
     }
 
-    return survivors;
+    return notes.filter((note) => !deleted.has(note.id));
+  }
+
+  private async filterDeletedInCalendar(
+    notes: Note[],
+    credentials: ReturnType<GoogleCredentialsResolver['resolve']>,
+  ): Promise<string[]> {
+    const results = await Promise.all(
+      notes.map(async (note) => ({
+        noteId: note.id,
+        wasDeleted: await this.wasDeletedInCalendar(note, credentials),
+      })),
+    );
+    return results.filter((r) => r.wasDeleted).map((r) => r.noteId);
   }
 
   private async wasDeletedInCalendar(
