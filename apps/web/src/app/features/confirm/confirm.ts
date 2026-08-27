@@ -31,6 +31,7 @@ export class Confirm implements OnInit, OnDestroy {
   private autoConfirmIntervalId?: ReturnType<typeof setInterval>;
 
   protected readonly events = signal<ExtractedEvent[]>([]);
+  protected readonly errorMessage = signal<string | undefined>(undefined);
   protected readonly autoConfirmSecondsLeft = signal<number | null>(null);
   protected readonly isSaving = signal(false);
   protected readonly categoryLabels = EVENT_CATEGORY_LABELS;
@@ -64,6 +65,7 @@ export class Confirm implements OnInit, OnDestroy {
 
     this.note = note;
     this.events.set(note.candidateEvents.map((event) => ({ ...event })));
+    this.errorMessage.set(note.errorMessage);
     this.startAutoConfirmIfUnambiguous();
   }
 
@@ -95,7 +97,7 @@ export class Confirm implements OnInit, OnDestroy {
   }
 
   private startAutoConfirmIfUnambiguous(): void {
-    if (this.events().some((event) => event.isAmbiguous)) {
+    if (this.events().length === 0 || this.events().some((event) => event.isAmbiguous)) {
       return;
     }
 
