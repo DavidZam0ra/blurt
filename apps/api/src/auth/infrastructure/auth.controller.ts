@@ -38,9 +38,13 @@ export class AuthController {
   @Get('google')
   google(@Res() res: Response): void {
     const state = randomBytes(16).toString('hex');
+    // No `prompt: 'consent'` here on purpose: Google only omits the
+    // refresh_token on repeat authorizations, and only when it has already
+    // handed one out before — so returning users skip straight past the
+    // permissions screen while AuthenticateWithGoogleUseCase falls back to
+    // the refresh token already stored for them.
     const authUrl = this.googleOAuthClientFactory.create().generateAuthUrl({
       access_type: 'offline',
-      prompt: 'consent',
       scope: CALENDAR_SCOPES,
       state,
     });
