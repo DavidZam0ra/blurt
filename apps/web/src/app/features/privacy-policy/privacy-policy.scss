@@ -1,0 +1,53 @@
+.privacy-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px 20px 48px;
+}
+
+.privacy-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  h2 {
+    font-size: 19px;
+  }
+}
+
+.privacy-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 560px;
+
+  h3 {
+    font-size: 15px;
+    margin-top: 8px;
+  }
+
+  p,
+  li {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: color-mix(in srgb, var(--color-text) 80%, transparent);
+  }
+
+  .updated {
+    font-size: 12px;
+    color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  a {
+    color: var(--color-accent-2);
+  }
+}

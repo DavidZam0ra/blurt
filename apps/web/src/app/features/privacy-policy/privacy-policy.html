@@ -1,0 +1,67 @@
+<div class="privacy-screen">
+  <div class="privacy-header">
+    <button type="button" class="btn btn-icon" (click)="goBack()" aria-label="Volver">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
+        <path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
+    <h2>Política de privacidad</h2>
+  </div>
+
+  <div class="privacy-content">
+    <p class="updated">Última actualización: 27 de agosto de 2026</p>
+
+    <p>
+      Blurt es una aplicación personal que convierte notas de voz en eventos de tu Google Calendar.
+      Esta página explica qué datos trata la aplicación y con qué finalidad.
+    </p>
+
+    <h3>Qué datos se recogen</h3>
+    <ul>
+      <li>De tu cuenta de Google: identificador, nombre, correo electrónico y foto de perfil, al iniciar sesión con Google.</li>
+      <li>Un token de acceso a Google Calendar (refresh token), para poder crear y gestionar eventos en tu nombre sin pedirte que vuelvas a iniciar sesión cada vez.</li>
+      <li>Las notas de voz que grabas en la app y su transcripción de texto.</li>
+      <li>Los eventos de calendario generados a partir de esas notas (título, fecha, categoría, etc.).</li>
+    </ul>
+
+    <h3>Para qué se usan</h3>
+    <ul>
+      <li>Autenticarte y mantener tu sesión iniciada.</li>
+      <li>Transcribir tus notas de voz y extraer de ellas los datos del evento (usando Groq como proveedor de transcripción e interpretación de la nota).</li>
+      <li>Crear, actualizar y eliminar eventos en tu Google Calendar a través de la API oficial de Google.</li>
+      <li>Mostrarte tu propio historial de notas dentro de la app.</li>
+    </ul>
+
+    <h3>Con quién se comparten</h3>
+    <p>
+      Blurt no vende ni comparte tus datos con terceros con fines publicitarios. Los únicos servicios externos
+      que reciben datos son Google (para el inicio de sesión y la creación de eventos en tu calendario) y Groq
+      (para transcribir el audio de tus notas y extraer la información del evento). Ambos procesan los datos
+      únicamente para prestar ese servicio a la app.
+    </p>
+
+    <h3>Cómo se almacenan</h3>
+    <p>
+      Los datos se guardan en una base de datos privada de la aplicación. El token de acceso a tu Google Calendar
+      se almacena siempre cifrado, nunca en texto plano.
+    </p>
+
+    <h3>Cuánto tiempo se conservan</h3>
+    <p>
+      Tus datos se conservan mientras mantengas una cuenta en Blurt. Puedes pedir que se eliminen en cualquier
+      momento escribiendo a la dirección de contacto de más abajo.
+    </p>
+
+    <h3>Revocar el acceso</h3>
+    <p>
+      Puedes retirar el acceso de Blurt a tu cuenta de Google en cualquier momento desde
+      <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">la página de permisos de tu cuenta de Google</a>.
+    </p>
+
+    <h3>Contacto</h3>
+    <p>
+      Para cualquier duda sobre tus datos o para pedir que se eliminen, escribe a
+      <a href="mailto:davidzpr4@gmail.com">davidzpr4&#64;gmail.com</a>.
+    </p>
+  </div>
+</div>
