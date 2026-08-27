@@ -68,14 +68,10 @@
     </button>
 
     <div class="record-center">
-      <div class="waveform">
-        <div class="waveform-bar" style="height:60%; animation-delay:0s"></div>
-        <div class="waveform-bar" style="height:100%; animation-delay:.15s"></div>
-        <div class="waveform-bar" style="height:45%; animation-delay:.3s"></div>
-        <div class="waveform-bar" style="height:90%; animation-delay:.45s"></div>
-        <div class="waveform-bar" style="height:65%; animation-delay:.1s"></div>
-        <div class="waveform-bar" style="height:100%; animation-delay:.35s"></div>
-        <div class="waveform-bar" style="height:50%; animation-delay:.2s"></div>
+      <div class="waveform waveform--live">
+        @for (level of waveLevels(); track $index) {
+          <div class="waveform-bar" [style.height.%]="level * 100"></div>
+        }
       </div>
 
       <button type="button" class="record-button record-button-active" (click)="stopRecording()" aria-label="Detener">
