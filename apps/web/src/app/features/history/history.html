@@ -8,6 +8,35 @@
     <h2>Historial</h2>
   </div>
 
+  @if (!isLoading() && notes().length > 0) {
+    <div class="tabs">
+      <button
+        type="button"
+        class="tab"
+        [class.tab-active]="activeTab() === 'upcoming'"
+        (click)="activeTab.set('upcoming')"
+      >
+        Próximos&nbsp;·&nbsp;{{ tabCounts().upcoming }}
+      </button>
+      <button
+        type="button"
+        class="tab"
+        [class.tab-active]="activeTab() === 'past'"
+        (click)="activeTab.set('past')"
+      >
+        Pasados&nbsp;·&nbsp;{{ tabCounts().past }}
+      </button>
+      <button
+        type="button"
+        class="tab"
+        [class.tab-active]="activeTab() === 'all'"
+        (click)="activeTab.set('all')"
+      >
+        Todos&nbsp;·&nbsp;{{ tabCounts().all }}
+      </button>
+    </div>
+  }
+
   @if (isLoading()) {
     @for (i of [0, 1, 2]; track i) {
       <div class="card note-card skeleton-card" aria-hidden="true">
@@ -25,41 +54,65 @@
       <p>Aún no hay planes.</p>
       <button type="button" class="btn btn-primary" (click)="goHome()">Grabar el primero</button>
     </div>
+  } @else if (filteredEventCards().length === 0) {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" width="30" height="30" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5" stroke="var(--color-neutral-500)" stroke-width="1.4" />
+        <path d="M12 7.5V12l3 2" stroke="var(--color-neutral-500)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <p>
+        {{
+          activeTab() === 'past'
+            ? 'Aquí aparecerán los planes una vez haya pasado su fecha.'
+            : 'No tienes planes próximos.'
+        }}
+      </p>
+    </div>
   }
 
-  @for (note of notes(); track note.id) {
+  @for (card of filteredEventCards(); track card.note.id + ':' + card.index) {
     <div class="card note-card" [style.animation-delay.ms]="$index * 40">
       <div class="note-header">
-        <span [class]="statusMeta(note.status).cssClass">{{ statusMeta(note.status).label }}</span>
-        <time>{{ note.createdAt | date: 'medium' }}</time>
+        <span [class]="statusMeta(card.note.status).cssClass">{{ statusMeta(card.note.status).label }}</span>
+        <time>{{ card.note.createdAt | date: 'medium' }}</time>
       </div>
 
-      @for (event of note.candidateEvents; track $index) {
-        <div class="note-event">
-          <span class="event-category">
-            <app-category-icon [category]="event.category" />
-            <span>{{ categoryLabels[event.category] }}</span>
-          </span>
-          <div class="card-title">{{ event.title }}</div>
-          <div class="card-meta">{{ event.startDateTime | date: 'medium' }}</div>
-        </div>
-      }
+      <span class="event-category">
+        <app-category-icon [category]="card.event.category" />
+        <span>{{ categoryLabels[card.event.category] }}</span>
+        @if (recurrenceLabel(card.event.recurrence); as label) {
+          <span class="tag tag-outline">{{ label }}</span>
+        }
+      </span>
+      <div class="card-title">{{ card.event.title }}</div>
+      <div class="card-meta">{{ card.event.startDateTime | date: 'medium' }}</div>
 
-      @if (note.errorMessage) {
-        <p class="error">{{ note.errorMessage }}</p>
+      @if (card.note.errorMessage) {
+        <p class="error">{{ card.note.errorMessage }}</p>
       }
 
       <div class="actions">
-        @if (note.status === NoteStatus.AwaitingConfirmation) {
-          <button type="button" class="btn btn-secondary" (click)="review(note)">Revisar</button>
+        @if (card.note.status === NoteStatus.AwaitingConfirmation) {
+          <button type="button" class="btn btn-secondary" (click)="review(card.note)">Revisar</button>
         }
-        @if (note.status === NoteStatus.Synced) {
-          <button type="button" class="btn btn-ghost" (click)="undo(note)">Deshacer</button>
+        @if (card.note.status === NoteStatus.Error) {
+          <button type="button" class="btn btn-secondary" (click)="review(card.note)">Reintentar</button>
         }
-        @if (note.status === NoteStatus.Error) {
-          <button type="button" class="btn btn-secondary" (click)="review(note)">Reintentar</button>
+        @if (card.note.candidateEvents.length === 1) {
+          @if (card.note.status === NoteStatus.Synced) {
+            <button type="button" class="btn btn-ghost" (click)="undo(card.note)">Deshacer</button>
+          }
+          <button type="button" class="btn btn-ghost btn-danger" (click)="delete(card.note)">Eliminar</button>
+        } @else {
+          <button
+            type="button"
+            class="btn btn-ghost"
+            [class.btn-danger]="!isEventSynced(card.note, card.index)"
+            (click)="removeEvent(card.note, card.index)"
+          >
+            {{ isEventSynced(card.note, card.index) ? 'Deshacer' : 'Quitar' }}
+          </button>
         }
-        <button type="button" class="btn btn-ghost btn-danger" (click)="delete(note)">Eliminar</button>
       </div>
     </div>
   }
