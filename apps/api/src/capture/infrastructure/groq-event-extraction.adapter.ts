@@ -4,6 +4,7 @@ import Groq from 'groq-sdk';
 import { EventExtractionPort } from '../domain/event-extraction.port';
 import { ExtractedEvent } from '../domain/extracted-event';
 import { EVENT_CATEGORIES, EventCategory } from '../domain/event-category';
+import { EventRecurrence, RECURRENCE_FREQUENCIES } from '../domain/event-recurrence';
 
 const LLAMA_MODEL = 'openai/gpt-oss-120b';
 const EXTRACT_EVENTS_TOOL_NAME = 'extract_calendar_events';
@@ -48,6 +49,41 @@ const EXTRACT_EVENTS_TOOL: Groq.Chat.Completions.ChatCompletionTool = {
                 description:
                   'Best-fit category for the event. Use "uncategorized" if none clearly applies.',
               },
+              recurrence: {
+                type: 'object',
+                description:
+                  'Only set when the speaker describes a repeating event (e.g. "todos los lunes", ' +
+                  '"cada semana", "every day"). Omit entirely for one-off events.',
+                properties: {
+                  frequency: {
+                    type: 'string',
+                    enum: RECURRENCE_FREQUENCIES as unknown as string[],
+                    description: 'How often the event repeats.',
+                  },
+                  interval: {
+                    type: 'number',
+                    description:
+                      'Repeat every N units (e.g. "cada dos semanas" -> frequency weekly, interval 2). Omit if not stated — defaults to 1.',
+                  },
+                  byDayOfWeek: {
+                    type: 'array',
+                    items: { type: 'number' },
+                    description:
+                      'Only for weekly recurrence with specific weekdays (e.g. "los lunes y miércoles" -> [1,3]). 0=Sunday..6=Saturday. Omit otherwise.',
+                  },
+                  count: {
+                    type: 'number',
+                    description:
+                      'Number of occurrences, only when the speaker gives a bounded count (e.g. "las próximas 4 semanas" -> 4). Do not set together with "until".',
+                  },
+                  until: {
+                    type: 'string',
+                    description:
+                      'Last local wall-clock date-time the series should run until, same format as startDateTime, only when the speaker gives an explicit end date. Do not set together with "count".',
+                  },
+                },
+                required: ['frequency'],
+              },
             },
             required: ['title', 'startDateTime', 'isAmbiguous', 'category'],
           },
@@ -58,12 +94,21 @@ const EXTRACT_EVENTS_TOOL: Groq.Chat.Completions.ChatCompletionTool = {
   },
 };
 
+interface ExtractedRecurrenceArguments {
+  frequency: EventRecurrence['frequency'];
+  interval?: number;
+  byDayOfWeek?: number[];
+  count?: number;
+  until?: string;
+}
+
 interface ExtractedEventArguments {
   events: Array<{
     title: string;
     startDateTime: string;
     isAmbiguous: boolean;
     category: EventCategory;
+    recurrence?: ExtractedRecurrenceArguments;
   }>;
 }
 
@@ -178,7 +223,15 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
               'A transcript may mention multiple events; extract each one separately. ' +
               'Mark isAmbiguous true whenever a time expression could reasonably resolve to more than one date, or when an hour is given ' +
               'without saying whether it is morning, afternoon, or night (e.g. "a las nueve" without further context). ' +
-              `Assign each event a category from: ${EVENT_CATEGORIES.join(', ')}.`,
+              `Assign each event a category from: ${EVENT_CATEGORIES.join(', ')}. ` +
+              'Only set "recurrence" when the speaker explicitly describes a repeating event ("todos los lunes", "cada semana", ' +
+              '"every day", weekday lists like "lunes y miércoles"), OR gives a date range ("desde el 1 hasta el 15 de septiembre", ' +
+              '"from the 3rd to the 10th") together with a specific time of day — treat that as a daily recurrence at that time, ' +
+              'running from the range\'s first date to its last date. Do not infer recurrence from a single one-off mention, and do not ' +
+              'treat a bare date range with no time of day as recurring — just use its first date. ' +
+              'Leave "interval" unset unless a multiplier is stated ("cada dos semanas"). Only set "count" or "until" — never both — ' +
+              'when the speaker gives an explicit end for the series (a date range\'s last date becomes "until"); leave both unset for an ' +
+              'open-ended recurrence.',
           },
           { role: 'user', content: transcript },
         ],
@@ -212,6 +265,30 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
       isAmbiguous: event.isAmbiguous,
       category: event.category,
       reminderOffsetsInMinutes: DEFAULT_REMINDER_OFFSETS_IN_MINUTES,
+      timeZone,
+      recurrence: event.recurrence
+        ? toEventRecurrence(event.recurrence, timeZone)
+        : undefined,
     }));
   }
+}
+
+function toEventRecurrence(
+  raw: ExtractedRecurrenceArguments,
+  timeZone: string,
+): EventRecurrence {
+  const recurrence: EventRecurrence = { frequency: raw.frequency };
+  if (raw.interval) {
+    recurrence.interval = raw.interval;
+  }
+  if (raw.byDayOfWeek?.length) {
+    recurrence.byDayOfWeek = raw.byDayOfWeek;
+  }
+  // The model is told never to set both — count wins if it slips through anyway.
+  if (raw.count) {
+    recurrence.count = raw.count;
+  } else if (raw.until) {
+    recurrence.until = localWallClockToUtcIso(raw.until, timeZone);
+  }
+  return recurrence;
 }

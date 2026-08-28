@@ -6,10 +6,18 @@ import {
   GoogleCalendarCredentials,
 } from '../domain/calendar.port';
 import { ExtractedEvent } from '../domain/extracted-event';
+import { EventRecurrence } from '../domain/event-recurrence';
 
 const DEFAULT_EVENT_DURATION_MS = 60 * 60 * 1000;
+const DEFAULT_TIME_ZONE = 'UTC';
 // Google Calendar "Lavender" — closest match to the app's accent color (#9184d9).
 const BLURT_EVENT_COLOR_ID = '1';
+const RRULE_WEEKDAY_CODES = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+const RRULE_FREQUENCY: Record<EventRecurrence['frequency'], string> = {
+  daily: 'DAILY',
+  weekly: 'WEEKLY',
+  monthly: 'MONTHLY',
+};
 
 @Injectable()
 export class GoogleCalendarAdapter implements CalendarPort {
@@ -116,13 +124,19 @@ export class GoogleCalendarAdapter implements CalendarPort {
   private toGoogleEvent(event: ExtractedEvent): calendar_v3.Schema$Event {
     const start = new Date(event.startDateTime);
     const end = new Date(start.getTime() + DEFAULT_EVENT_DURATION_MS);
+    const timeZone = event.timeZone ?? DEFAULT_TIME_ZONE;
 
     return {
       summary: event.title,
-      start: { dateTime: start.toISOString() },
-      end: { dateTime: end.toISOString() },
+      // A floating local wall-clock dateTime (no "Z"/offset) paired with timeZone —
+      // not a "Z"-suffixed UTC instant — is what Google Calendar expects; pairing an
+      // absolute UTC instant with a timeZone is what triggers "Invalid recurrence rule"
+      // once the event carries an RRULE, so we use the same floating format always.
+      start: { dateTime: toLocalWallClockString(start, timeZone), timeZone },
+      end: { dateTime: toLocalWallClockString(end, timeZone), timeZone },
       colorId: BLURT_EVENT_COLOR_ID,
       reminders: this.toGoogleReminders(event.reminderOffsetsInMinutes),
+      recurrence: event.recurrence ? [buildRRule(event.recurrence)] : undefined,
     };
   }
 
@@ -141,4 +155,48 @@ export class GoogleCalendarAdapter implements CalendarPort {
       })),
     };
   }
+}
+
+function buildRRule(recurrence: EventRecurrence): string {
+  const parts = [`FREQ=${RRULE_FREQUENCY[recurrence.frequency]}`];
+
+  if (recurrence.interval && recurrence.interval > 1) {
+    parts.push(`INTERVAL=${recurrence.interval}`);
+  }
+  if (recurrence.byDayOfWeek?.length) {
+    parts.push(
+      `BYDAY=${recurrence.byDayOfWeek.map((day) => RRULE_WEEKDAY_CODES[day]).join(',')}`,
+    );
+  }
+  // RRULE forbids setting both COUNT and UNTIL — count wins if both are present.
+  if (recurrence.count) {
+    parts.push(`COUNT=${recurrence.count}`);
+  } else if (recurrence.until) {
+    parts.push(`UNTIL=${toRRuleUntil(recurrence.until)}`);
+  }
+
+  // Google's `recurrence` array holds full iCalendar lines, not bare "field=value"
+  // pairs — without the "RRULE:" property prefix it's rejected as invalid.
+  return `RRULE:${parts.join(';')}`;
+}
+
+function toRRuleUntil(isoDateTime: string): string {
+  return isoDateTime.replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+}
+
+function toLocalWallClockString(date: Date, timeZone: string): string {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hourCycle: 'h23',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  const parts = Object.fromEntries(
+    formatter.formatToParts(date).map((part) => [part.type, part.value]),
+  );
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}`;
 }

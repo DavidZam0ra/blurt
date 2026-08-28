@@ -2,11 +2,31 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { ExtractedEvent } from '../../domain/extracted-event';
 import { EVENT_CATEGORIES } from '../../domain/event-category';
+import { RECURRENCE_FREQUENCIES } from '../../domain/event-recurrence';
+import type { EventRecurrence } from '../../domain/event-recurrence';
 import type { NoteStatus } from '../../domain/note';
 
 export type NoteDocument = HydratedDocument<NoteEntity>;
 
 const NOTE_STATUSES: NoteStatus[] = ['AwaitingConfirmation', 'Synced', 'Error'];
+
+@Schema({ _id: false })
+class EventRecurrenceSchema implements EventRecurrence {
+  @Prop({ required: true, type: String, enum: RECURRENCE_FREQUENCIES })
+  frequency!: EventRecurrence['frequency'];
+
+  @Prop()
+  interval?: number;
+
+  @Prop({ type: [Number] })
+  byDayOfWeek?: number[];
+
+  @Prop()
+  count?: number;
+
+  @Prop()
+  until?: string;
+}
 
 @Schema({ _id: false })
 class ExtractedEventSchema implements ExtractedEvent {
@@ -24,6 +44,12 @@ class ExtractedEventSchema implements ExtractedEvent {
 
   @Prop({ required: true, type: String, enum: EVENT_CATEGORIES })
   category!: ExtractedEvent['category'];
+
+  @Prop({ type: EventRecurrenceSchema, required: false })
+  recurrence?: EventRecurrence;
+
+  @Prop()
+  timeZone?: string;
 }
 
 @Schema({ collection: 'notes', timestamps: true })
