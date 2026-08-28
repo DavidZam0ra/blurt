@@ -49,4 +49,10 @@ export class CaptureApiService {
   deleteNote(id: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`${API_BASE_URL}/notes/${id}`));
   }
+
+  removeEvent(id: string, index: number): Promise<Note | null> {
+    return firstValueFrom(
+      this.http.delete<Note | null>(`${API_BASE_URL}/notes/${id}/events/${index}`),
+    );
+  }
 }

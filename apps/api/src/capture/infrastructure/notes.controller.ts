@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { GetNoteUseCase } from '../application/get-note.use-case';
 import { ConfirmNoteUseCase } from '../application/confirm-note.use-case';
 import { UndoNoteUseCase } from '../application/undo-note.use-case';
 import { DeleteNoteUseCase } from '../application/delete-note.use-case';
+import { RemoveEventFromNoteUseCase } from '../application/remove-event-from-note.use-case';
 import { ConfirmNoteRequestDto } from './dto/confirm-note-request.dto';
 import { Note } from '../domain/note';
 
@@ -28,6 +30,7 @@ export class NotesController {
     private readonly confirmNote: ConfirmNoteUseCase,
     private readonly undoNote: UndoNoteUseCase,
     private readonly deleteNote: DeleteNoteUseCase,
+    private readonly removeEventFromNote: RemoveEventFromNoteUseCase,
   ) {}
 
   @Get()
@@ -58,5 +61,14 @@ export class NotesController {
   @HttpCode(204)
   delete(@Param('id') id: string, @CurrentUser() user: User): Promise<void> {
     return this.deleteNote.execute(id, user);
+  }
+
+  @Delete(':id/events/:index')
+  removeEvent(
+    @Param('id') id: string,
+    @Param('index', ParseIntPipe) index: number,
+    @CurrentUser() user: User,
+  ): Promise<Note | null> {
+    return this.removeEventFromNote.execute(id, user, index);
   }
 }

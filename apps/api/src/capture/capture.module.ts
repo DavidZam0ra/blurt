@@ -12,6 +12,7 @@ import { GetNoteUseCase } from './application/get-note.use-case';
 import { ConfirmNoteUseCase } from './application/confirm-note.use-case';
 import { UndoNoteUseCase } from './application/undo-note.use-case';
 import { DeleteNoteUseCase } from './application/delete-note.use-case';
+import { RemoveEventFromNoteUseCase } from './application/remove-event-from-note.use-case';
 import { GoogleCredentialsResolver } from './application/google-credentials.resolver';
 import { TRANSCRIPTION_PORT } from './domain/transcription.port';
 import { EVENT_EXTRACTION_PORT } from './domain/event-extraction.port';
@@ -39,6 +40,7 @@ import { NoteMongooseAdapter } from './infrastructure/mongoose/note-mongoose.ada
     ConfirmNoteUseCase,
     UndoNoteUseCase,
     DeleteNoteUseCase,
+    RemoveEventFromNoteUseCase,
     GoogleCredentialsResolver,
     { provide: TRANSCRIPTION_PORT, useClass: GroqTranscriptionAdapter },
     { provide: EVENT_EXTRACTION_PORT, useClass: GroqEventExtractionAdapter },
