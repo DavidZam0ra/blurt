@@ -18,14 +18,33 @@
       <button type="button" class="btn btn-primary btn-block" [disabled]="isSaving()" (click)="cancel()">
         Reintentar
       </button>
+      <button type="button" class="btn btn-ghost" [disabled]="isSaving()" (click)="addEvent()">
+        Añadir evento manualmente
+      </button>
     </div>
   } @else {
     @for (event of events(); track $index) {
       <div class="card event-card">
-        <span class="tag tag-neutral event-category">
-          <app-category-icon [category]="event.category" />
-          <span>{{ categoryLabels[event.category] }}</span>
-        </span>
+        <div class="event-card-header">
+          <span class="tag tag-neutral event-category">
+            <app-category-icon [category]="event.category" />
+            <span>{{ categoryLabels[event.category] }}</span>
+          </span>
+
+          @if (recurrenceLabel(event.recurrence); as label) {
+            <span class="tag tag-outline">{{ label }}</span>
+          }
+
+          @if (events().length > 1) {
+            <button
+              type="button"
+              class="btn btn-ghost btn-danger event-remove"
+              (click)="removeEvent($index)"
+            >
+              Quitar
+            </button>
+          }
+        </div>
 
         <label class="field">
           <label>Título</label>
@@ -47,6 +66,20 @@
           />
         </label>
 
+        <label class="field">
+          <label>Repetir</label>
+          <select
+            class="input"
+            [ngModel]="event.recurrence?.frequency ?? 'none'"
+            (ngModelChange)="onRecurrenceChange($index, $event)"
+          >
+            <option value="none">No se repite</option>
+            <option value="daily">Cada día</option>
+            <option value="weekly">Cada semana</option>
+            <option value="monthly">Cada mes</option>
+          </select>
+        </label>
+
         @if (event.isAmbiguous) {
           <div class="ambiguous-hint">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
@@ -59,6 +92,10 @@
         }
       </div>
     }
+
+    <button type="button" class="btn btn-ghost btn-block" [disabled]="isSaving()" (click)="addEvent()">
+      + Añadir otro evento
+    </button>
 
     @if (autoConfirmSecondsLeft(); as secondsLeft) {
       <div class="auto-confirm-hint">

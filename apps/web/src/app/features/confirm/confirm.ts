@@ -8,10 +8,23 @@ import { ToastService } from '../../core/toast/toast.service';
 import { Note, NoteStatus } from '../../core/models/note';
 import { ExtractedEvent } from '../../core/models/extracted-event';
 import { EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
+import { RecurrenceFrequency, recurrenceLabel } from '../../core/models/event-recurrence';
 import { CategoryIcon } from '../../shared/category-icon/category-icon';
 
 const AUTO_CONFIRM_DELAY_IN_SECONDS = 5;
 const RING_CIRCUMFERENCE = 56.5;
+const NEW_EVENT_START_OFFSET_IN_MS = 60 * 60 * 1000;
+
+function createBlankEvent(): ExtractedEvent {
+  return {
+    title: '',
+    startDateTime: new Date(Date.now() + NEW_EVENT_START_OFFSET_IN_MS).toISOString(),
+    reminderOffsetsInMinutes: [],
+    isAmbiguous: false,
+    category: 'uncategorized',
+    timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  };
+}
 
 @Component({
   selector: 'app-confirm',
@@ -35,6 +48,7 @@ export class Confirm implements OnInit, OnDestroy {
   protected readonly autoConfirmSecondsLeft = signal<number | null>(null);
   protected readonly isSaving = signal(false);
   protected readonly categoryLabels = EVENT_CATEGORY_LABELS;
+  protected readonly recurrenceLabel = recurrenceLabel;
 
   protected readonly ringDashoffset = computed(() => {
     const secondsLeft = this.autoConfirmSecondsLeft();
@@ -90,6 +104,26 @@ export class Confirm implements OnInit, OnDestroy {
     this.updateEvent(index, { startDateTime: new Date(dateTimeLocalValue).toISOString() });
   }
 
+  protected onRecurrenceChange(index: number, frequency: RecurrenceFrequency | 'none'): void {
+    this.cancelAutoConfirm();
+    this.updateEvent(index, {
+      recurrence: frequency === 'none' ? undefined : { frequency, interval: 1 },
+    });
+  }
+
+  protected addEvent(): void {
+    this.cancelAutoConfirm();
+    this.events.update((events) => [...events, createBlankEvent()]);
+  }
+
+  protected removeEvent(index: number): void {
+    if (this.events().length <= 1) {
+      return;
+    }
+    this.cancelAutoConfirm();
+    this.events.update((events) => events.filter((_, i) => i !== index));
+  }
+
   private updateEvent(index: number, changes: Partial<ExtractedEvent>): void {
     this.events.update((events) =>
       events.map((event, i) => (i === index ? { ...event, ...changes } : event)),
@@ -97,7 +131,10 @@ export class Confirm implements OnInit, OnDestroy {
   }
 
   private startAutoConfirmIfUnambiguous(): void {
-    if (this.events().length === 0 || this.events().some((event) => event.isAmbiguous)) {
+    if (
+      this.events().length === 0 ||
+      this.events().some((event) => event.isAmbiguous || event.recurrence)
+    ) {
       return;
     }
 

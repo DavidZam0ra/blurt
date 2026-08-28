@@ -36,10 +36,20 @@
   gap: 14px;
 }
 
+.event-card-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .event-category {
-  align-self: flex-start;
   align-items: center;
   gap: 5px;
+}
+
+.event-remove {
+  margin-left: auto;
 }
 
 .ambiguous-hint {
