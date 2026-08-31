@@ -1,0 +1,15 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+<rect width="120" height="120" fill="none"></rect>
+<g stroke="#9184d9" stroke-opacity="0.14" stroke-width="1.5" fill="none">
+<path d="M0 100 A20 20 0 0 1 20 120"></path>
+<path d="M0 75 A45 45 0 0 1 45 120"></path>
+<path d="M0 50 A70 70 0 0 1 70 120"></path>
+<path d="M0 25 A95 95 0 0 1 95 120"></path>
+</g>
+<g stroke="#b5abfc" stroke-opacity="0.10" stroke-width="1.5" fill="none">
+<path d="M120 20 A20 20 0 0 1 100 0"></path>
+<path d="M120 45 A45 45 0 0 1 75 0"></path>
+<path d="M120 70 A70 70 0 0 1 50 0"></path>
+<path d="M120 95 A95 95 0 0 1 25 0"></path>
+</g>
+</svg>
