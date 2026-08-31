@@ -5,6 +5,7 @@ export interface ExtractedEvent {
   title: string;
   startDateTime: string;
   durationInMinutes?: number;
+  endDate?: string;
   reminderOffsetsInMinutes: number[];
   isAmbiguous: boolean;
   category: EventCategory;
@@ -23,4 +24,16 @@ export function durationEndLabel(
   );
   const time = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' }).format(end);
   return `Hasta las ${time}`;
+}
+
+export function allDayRangeLabel(
+  event: Pick<ExtractedEvent, 'endDate'>,
+): string | null {
+  if (!event.endDate) {
+    return null;
+  }
+  const end = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' }).format(
+    new Date(`${event.endDate}T00:00:00`),
+  );
+  return `Todo el día · hasta el ${end}`;
 }

@@ -122,12 +122,30 @@ export class GoogleCalendarAdapter implements CalendarPort {
   }
 
   private toGoogleEvent(event: ExtractedEvent): calendar_v3.Schema$Event {
+    const timeZone = event.timeZone ?? DEFAULT_TIME_ZONE;
+
+    if (event.endDate) {
+      // All-day events are date-only in Google's API — no dateTime, no
+      // timeZone, and "end.date" is exclusive (the day AFTER the last day
+      // the event should show on).
+      const startDate = toLocalWallClockString(
+        new Date(event.startDateTime),
+        timeZone,
+      ).slice(0, 10);
+      return {
+        summary: event.title,
+        start: { date: startDate },
+        end: { date: addOneDay(event.endDate) },
+        colorId: BLURT_EVENT_COLOR_ID,
+        reminders: this.toGoogleReminders(event.reminderOffsetsInMinutes),
+      };
+    }
+
     const start = new Date(event.startDateTime);
     const durationMs = event.durationInMinutes
       ? event.durationInMinutes * 60 * 1000
       : DEFAULT_EVENT_DURATION_MS;
     const end = new Date(start.getTime() + durationMs);
-    const timeZone = event.timeZone ?? DEFAULT_TIME_ZONE;
 
     return {
       summary: event.title,
@@ -181,6 +199,11 @@ function buildRRule(recurrence: EventRecurrence): string {
   // Google's `recurrence` array holds full iCalendar lines, not bare "field=value"
   // pairs — without the "RRULE:" property prefix it's rejected as invalid.
   return `RRULE:${parts.join(';')}`;
+}
+
+function addOneDay(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
 }
 
 function toRRuleUntil(isoDateTime: string): string {

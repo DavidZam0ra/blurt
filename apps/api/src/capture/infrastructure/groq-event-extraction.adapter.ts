@@ -45,6 +45,15 @@ const EXTRACT_EVENTS_TOOL: Groq.Chat.Completions.ChatCompletionTool = {
                   '(e.g. "durante 2 horas" -> 120, "de una hora" -> 60, "30 minutos" -> 30). Omit entirely when no ' +
                   'duration is stated — do not guess one.',
               },
+              endDate: {
+                type: 'string',
+                description:
+                  'ONLY set when the speaker gives a date range with NO time of day (e.g. "del 24 al 27", "from the 3rd ' +
+                  'to the 10th", "Viaje a Andorra del 24 al 27"). The LAST inclusive local date of the range, format ' +
+                  'YYYY-MM-DD. When set, startDateTime should use the range\'s FIRST date at time 00:00:00, and the ' +
+                  'event is treated as a single multi-day all-day event spanning both dates — never as a recurrence. ' +
+                  'Omit entirely for anything with a specific time of day, or for a single-day event.',
+              },
               isAmbiguous: {
                 type: 'boolean',
                 description:
@@ -114,6 +123,7 @@ interface ExtractedEventArguments {
     title: string;
     startDateTime: string;
     durationInMinutes?: number;
+    endDate?: string;
     isAmbiguous: boolean;
     category: EventCategory;
     recurrence?: ExtractedRecurrenceArguments;
@@ -235,8 +245,9 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
               'Only set "recurrence" when the speaker explicitly describes a repeating event ("todos los lunes", "cada semana", ' +
               '"every day", weekday lists like "lunes y miércoles"), OR gives a date range ("desde el 1 hasta el 15 de septiembre", ' +
               '"from the 3rd to the 10th") together with a specific time of day — treat that as a daily recurrence at that time, ' +
-              'running from the range\'s first date to its last date. Do not infer recurrence from a single one-off mention, and do not ' +
-              'treat a bare date range with no time of day as recurring — just use its first date. ' +
+              'running from the range\'s first date to its last date. Do not infer recurrence from a single one-off mention. A bare ' +
+              'date range with NO time of day (e.g. "Viaje a Andorra del 24 al 27") is never recurrence — set "endDate" instead ' +
+              '(see its own field description) to make it a multi-day all-day event. ' +
               'Leave "interval" unset unless a multiplier is stated ("cada dos semanas"). Only set "count" or "until" — never both — ' +
               'when the speaker gives an explicit end for the series (a date range\'s last date becomes "until"); leave both unset for an ' +
               'open-ended recurrence. ' +
@@ -284,6 +295,9 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
       title: event.title,
       startDateTime: localWallClockToUtcIso(event.startDateTime, timeZone),
       durationInMinutes: event.durationInMinutes,
+      // Plain local calendar date, deliberately left unconverted (no TZ math) —
+      // Google Calendar's all-day date fields are date-only, not an instant.
+      endDate: event.endDate,
       isAmbiguous: event.isAmbiguous,
       category: event.category,
       reminderOffsetsInMinutes: DEFAULT_REMINDER_OFFSETS_IN_MINUTES,

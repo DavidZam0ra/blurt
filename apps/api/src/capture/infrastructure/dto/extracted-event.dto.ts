@@ -26,6 +26,10 @@ export class ExtractedEventDto implements ExtractedEvent {
   @IsNumber()
   durationInMinutes?: number;
 
+  @IsOptional()
+  @IsISO8601()
+  endDate?: string;
+
   @IsArray()
   @IsNumber({}, { each: true })
   reminderOffsetsInMinutes!: number[];

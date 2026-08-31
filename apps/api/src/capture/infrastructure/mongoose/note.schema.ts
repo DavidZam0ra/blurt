@@ -39,6 +39,9 @@ class ExtractedEventSchema implements ExtractedEvent {
   @Prop()
   durationInMinutes?: number;
 
+  @Prop()
+  endDate?: string;
+
   @Prop({ type: [Number], default: [] })
   reminderOffsetsInMinutes!: number[];
 

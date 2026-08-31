@@ -64,7 +64,9 @@
             [ngModel]="toDateTimeLocal(event.startDateTime)"
             (ngModelChange)="onStartDateTimeChange($index, $event)"
           />
-          @if (durationEndLabel(event); as endLabel) {
+          @if (allDayRangeLabel(event); as rangeLabel) {
+            <span class="field-hint">{{ rangeLabel }}</span>
+          } @else if (durationEndLabel(event); as endLabel) {
             <span class="field-hint">{{ endLabel }}</span>
           }
         </label>

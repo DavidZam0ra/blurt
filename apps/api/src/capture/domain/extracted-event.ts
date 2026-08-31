@@ -6,6 +6,8 @@ export interface ExtractedEvent {
   startDateTime: string;
   /** Only set when the speaker explicitly states a duration; otherwise callers fall back to a default. */
   durationInMinutes?: number;
+  /** Only set for a bare date range with no time of day — the last inclusive local calendar date (YYYY-MM-DD) of a multi-day all-day event starting on startDateTime's date. */
+  endDate?: string;
   reminderOffsetsInMinutes: number[];
   isAmbiguous: boolean;
   category: EventCategory;
