@@ -9,6 +9,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
 
   readonly currentUser = signal<PublicUser | null>(null);
+  readonly authChecked = signal(false);
 
   async loadCurrentUser(): Promise<void> {
     try {
@@ -18,6 +19,8 @@ export class AuthService {
       this.currentUser.set(user);
     } catch {
       this.currentUser.set(null);
+    } finally {
+      this.authChecked.set(true);
     }
   }
 

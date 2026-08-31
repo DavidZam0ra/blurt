@@ -17,7 +17,12 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideHttpClient(withInterceptors([sessionInterceptor])),
-    provideAppInitializer(() => inject(AuthService).loadCurrentUser()),
+    provideAppInitializer(() => {
+      // Fire-and-forget: kick off the session check as early as possible
+      // without blocking bootstrap on it (it's slow on Render's free-tier
+      // cold start). authGuard/App handle the pending vs. resolved states.
+      void inject(AuthService).loadCurrentUser();
+    }),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
