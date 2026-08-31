@@ -1,7 +1,8 @@
-import { Component, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 import { ChangelogService } from '../../core/changelog/changelog.service';
+import { ScrollLockService } from '../../core/scroll-lock/scroll-lock.service';
 
 function initialsFor(name: string | undefined, email: string): string {
   const source = name?.trim() || email;
@@ -17,14 +18,21 @@ function initialsFor(name: string | undefined, email: string): string {
   templateUrl: './profile-menu.html',
   styleUrl: './profile-menu.scss',
 })
-export class ProfileMenu {
+export class ProfileMenu implements OnDestroy {
   protected readonly auth = inject(AuthService);
   protected readonly changelog = inject(ChangelogService);
   private readonly router = inject(Router);
   private readonly elementRef = inject(ElementRef<HTMLElement>);
+  private readonly scrollLock = inject(ScrollLockService);
 
   protected readonly isOpen = signal(false);
   protected readonly isChangelogOpen = signal(false);
+
+  ngOnDestroy(): void {
+    if (this.isChangelogOpen()) {
+      this.scrollLock.unlock();
+    }
+  }
 
   protected readonly initials = computed(() => {
     const user = this.auth.currentUser();
@@ -45,11 +53,13 @@ export class ProfileMenu {
   protected openChangelog(): void {
     this.isOpen.set(false);
     this.isChangelogOpen.set(true);
+    this.scrollLock.lock();
     this.changelog.markSeen();
   }
 
   protected closeChangelog(): void {
     this.isChangelogOpen.set(false);
+    this.scrollLock.unlock();
   }
 
   protected async goToSettings(): Promise<void> {

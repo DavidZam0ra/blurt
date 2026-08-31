@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { GetPreferencesUseCase } from '../../core/use-cases/get-preferences.use-case';
@@ -7,6 +7,7 @@ import { ListCalendarsUseCase } from '../../core/use-cases/list-calendars.use-ca
 import { SelectCalendarUseCase } from '../../core/use-cases/select-calendar.use-case';
 import { ToastService } from '../../core/toast/toast.service';
 import { AuthService } from '../../core/auth/auth.service';
+import { ScrollLockService } from '../../core/scroll-lock/scroll-lock.service';
 import { GoogleCalendarListEntry } from '../../core/models/google-calendar';
 import { CHANGELOG } from '../../core/models/changelog';
 import {
@@ -31,7 +32,7 @@ const UNIT_MULTIPLIER: Record<CustomUnit, number> = {
   templateUrl: './settings.html',
   styleUrl: './settings.scss',
 })
-export class Settings implements OnInit {
+export class Settings implements OnInit, OnDestroy {
   private readonly getPreferences = inject(GetPreferencesUseCase);
   private readonly updatePreferences = inject(UpdatePreferencesUseCase);
   private readonly listCalendars = inject(ListCalendarsUseCase);
@@ -39,6 +40,7 @@ export class Settings implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
+  private readonly scrollLock = inject(ScrollLockService);
 
   protected readonly appVersionLabel = CHANGELOG[0]?.label;
   protected readonly reminderChoices = REMINDER_CHOICES;
@@ -62,6 +64,12 @@ export class Settings implements OnInit {
   async ngOnInit(): Promise<void> {
     this.selectedCalendarId.set(this.auth.currentUser()?.googleCalendarId);
     await Promise.all([this.loadPreferences(), this.loadCalendars()]);
+  }
+
+  ngOnDestroy(): void {
+    if (this.isDeleteAccountOpen()) {
+      this.scrollLock.unlock();
+    }
   }
 
   private async loadPreferences(): Promise<void> {
@@ -102,10 +110,12 @@ export class Settings implements OnInit {
 
   protected openDeleteAccount(): void {
     this.isDeleteAccountOpen.set(true);
+    this.scrollLock.lock();
   }
 
   protected closeDeleteAccount(): void {
     this.isDeleteAccountOpen.set(false);
+    this.scrollLock.unlock();
   }
 
   protected async confirmDeleteAccount(): Promise<void> {
