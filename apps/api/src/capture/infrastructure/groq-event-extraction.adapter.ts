@@ -231,7 +231,18 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
               'treat a bare date range with no time of day as recurring — just use its first date. ' +
               'Leave "interval" unset unless a multiplier is stated ("cada dos semanas"). Only set "count" or "until" — never both — ' +
               'when the speaker gives an explicit end for the series (a date range\'s last date becomes "until"); leave both unset for an ' +
-              'open-ended recurrence.',
+              'open-ended recurrence. ' +
+              'Common time-of-day words: "mediodía"/"noon" = 12:00, "medianoche"/"midnight" = 00:00, and "madrugada" means the small ' +
+              'hours (roughly 00:00-06:00) even when only a bare number is given (e.g. "las 3 de la madrugada" = 03:00, not 15:00). ' +
+              'Hedges like "sobre las", "a eso de", "hacia las", "más o menos a las" still resolve to the exact hour stated — they do not ' +
+              'by themselves make isAmbiguous true. Common relative-date phrases: "pasado mañana" = the day after tomorrow; ' +
+              '"en/dentro de N días/semanas/meses" = N units after the reference date; "el/la próximo(a) [weekday]" and "esta/este [weekday]" ' +
+              'both mean the next upcoming occurrence of that weekday (today itself if the reference date-time already falls on it and the ' +
+              'stated time hasn\'t passed yet). "el finde"/"este finde"/"fin de semana" defaults to the coming Saturday when no specific day ' +
+              'is said — mark isAmbiguous true for it, since it could mean either Saturday or Sunday. ' +
+              'Use these category hints loosely, not as a strict list: comida/cena/desayuno/brunch/café -> food; ' +
+              'gimnasio/entreno/médico/dentista/fisio/consulta -> health; curro/oficina/reunión/junta/presentación/cliente -> work; ' +
+              'cumpleaños/cumple/boda/quedada/peli -> personal; vuelo/tren/viaje/hotel/maleta -> travel.',
           },
           { role: 'user', content: transcript },
         ],
