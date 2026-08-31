@@ -55,4 +55,10 @@ export class CaptureApiService {
       this.http.delete<Note | null>(`${API_BASE_URL}/notes/${id}/events/${index}`),
     );
   }
+
+  updateEvent(id: string, index: number, event: ExtractedEvent): Promise<Note> {
+    return firstValueFrom(
+      this.http.patch<Note>(`${API_BASE_URL}/notes/${id}/events/${index}`, event),
+    );
+  }
 }

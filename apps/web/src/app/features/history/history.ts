@@ -1,14 +1,18 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ListNotesUseCase } from '../../core/use-cases/list-notes.use-case';
 import { UndoVoiceNoteUseCase } from '../../core/use-cases/undo-voice-note.use-case';
 import { DeleteVoiceNoteUseCase } from '../../core/use-cases/delete-voice-note.use-case';
 import { RemoveEventFromNoteUseCase } from '../../core/use-cases/remove-event-from-note.use-case';
+import { UpdateEventInNoteUseCase } from '../../core/use-cases/update-event-in-note.use-case';
 import { ToastService } from '../../core/toast/toast.service';
 import { Note, NoteStatus } from '../../core/models/note';
-import { EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
-import { recurrenceLabel } from '../../core/models/event-recurrence';
+import { ExtractedEvent } from '../../core/models/extracted-event';
+import { EVENT_CATEGORIES, EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
+import { RecurrenceFrequency, recurrenceLabel } from '../../core/models/event-recurrence';
+import { toDateTimeLocalInputValue } from '../../core/models/date-time-local';
 import { CategoryIcon } from '../../shared/category-icon/category-icon';
 
 interface StatusMeta {
@@ -40,7 +44,7 @@ function eventTime(card: EventCard): number {
 
 @Component({
   selector: 'app-history',
-  imports: [DatePipe, CategoryIcon],
+  imports: [DatePipe, CategoryIcon, FormsModule],
   templateUrl: './history.html',
   styleUrl: './history.scss',
 })
@@ -49,14 +53,21 @@ export class History implements OnInit {
   private readonly undoVoiceNote = inject(UndoVoiceNoteUseCase);
   private readonly deleteVoiceNote = inject(DeleteVoiceNoteUseCase);
   private readonly removeEventFromNote = inject(RemoveEventFromNoteUseCase);
+  private readonly updateEventInNote = inject(UpdateEventInNoteUseCase);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
   protected readonly notes = signal<Note[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly NoteStatus = NoteStatus;
+  protected readonly categories = EVENT_CATEGORIES;
   protected readonly categoryLabels = EVENT_CATEGORY_LABELS;
   protected readonly recurrenceLabel = recurrenceLabel;
+  protected readonly toDateTimeLocal = toDateTimeLocalInputValue;
+
+  protected readonly editingCardKey = signal<string | null>(null);
+  protected readonly editBuffer = signal<ExtractedEvent | null>(null);
+  protected readonly isEditSaving = signal(false);
 
   protected readonly eventCards = computed<EventCard[]>(() =>
     this.notes().flatMap((note) =>
@@ -146,6 +157,64 @@ export class History implements OnInit {
       await this.reload();
     } catch {
       this.toast.show('No se pudo quitar el evento');
+    }
+  }
+
+  private cardKey(card: EventCard): string {
+    return `${card.note.id}:${card.index}`;
+  }
+
+  protected isEditing(card: EventCard): boolean {
+    return this.editingCardKey() === this.cardKey(card);
+  }
+
+  protected startEdit(card: EventCard): void {
+    this.editingCardKey.set(this.cardKey(card));
+    this.editBuffer.set({ ...card.event });
+  }
+
+  protected cancelEdit(): void {
+    this.editingCardKey.set(null);
+    this.editBuffer.set(null);
+  }
+
+  protected onEditTitleChange(title: string): void {
+    this.updateEditBuffer({ title });
+  }
+
+  protected onEditStartDateTimeChange(dateTimeLocalValue: string): void {
+    this.updateEditBuffer({ startDateTime: new Date(dateTimeLocalValue).toISOString() });
+  }
+
+  protected onEditCategoryChange(category: ExtractedEvent['category']): void {
+    this.updateEditBuffer({ category });
+  }
+
+  protected onEditRecurrenceChange(frequency: RecurrenceFrequency | 'none'): void {
+    this.updateEditBuffer({
+      recurrence: frequency === 'none' ? undefined : { frequency, interval: 1 },
+    });
+  }
+
+  private updateEditBuffer(changes: Partial<ExtractedEvent>): void {
+    this.editBuffer.update((event) => (event ? { ...event, ...changes } : event));
+  }
+
+  protected async saveEdit(card: EventCard): Promise<void> {
+    const editedEvent = this.editBuffer();
+    if (!editedEvent || this.isEditSaving()) {
+      return;
+    }
+    this.isEditSaving.set(true);
+    try {
+      await this.updateEventInNote.execute(card.note.id, card.index, editedEvent);
+      this.toast.show('Guardado');
+      this.cancelEdit();
+      await this.reload();
+    } catch {
+      this.toast.show('No se pudo guardar el cambio');
+    } finally {
+      this.isEditSaving.set(false);
     }
   }
 }

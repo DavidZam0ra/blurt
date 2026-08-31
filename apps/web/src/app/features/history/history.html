@@ -77,43 +77,102 @@
         <time>{{ card.note.createdAt | date: 'medium' }}</time>
       </div>
 
-      <span class="event-category">
-        <app-category-icon [category]="card.event.category" />
-        <span>{{ categoryLabels[card.event.category] }}</span>
-        @if (recurrenceLabel(card.event.recurrence); as label) {
-          <span class="tag tag-outline">{{ label }}</span>
-        }
-      </span>
-      <div class="card-title">{{ card.event.title }}</div>
-      <div class="card-meta">{{ card.event.startDateTime | date: 'medium' }}</div>
+      @if (isEditing(card)) {
+        <label class="field">
+          <label>Título</label>
+          <input
+            class="input"
+            type="text"
+            [ngModel]="editBuffer()?.title"
+            (ngModelChange)="onEditTitleChange($event)"
+          />
+        </label>
 
-      @if (card.note.errorMessage) {
-        <p class="error">{{ card.note.errorMessage }}</p>
-      }
+        <label class="field">
+          <label>Cuándo</label>
+          <input
+            class="input"
+            type="datetime-local"
+            [ngModel]="toDateTimeLocal(editBuffer()!.startDateTime)"
+            (ngModelChange)="onEditStartDateTimeChange($event)"
+          />
+        </label>
 
-      <div class="actions">
-        @if (card.note.status === NoteStatus.AwaitingConfirmation) {
-          <button type="button" class="btn btn-secondary" (click)="review(card.note)">Revisar</button>
-        }
-        @if (card.note.status === NoteStatus.Error) {
-          <button type="button" class="btn btn-secondary" (click)="review(card.note)">Reintentar</button>
-        }
-        @if (card.note.candidateEvents.length === 1) {
-          @if (card.note.status === NoteStatus.Synced) {
-            <button type="button" class="btn btn-ghost" (click)="undo(card.note)">Deshacer</button>
-          }
-          <button type="button" class="btn btn-ghost btn-danger" (click)="delete(card.note)">Eliminar</button>
-        } @else {
-          <button
-            type="button"
-            class="btn btn-ghost"
-            [class.btn-danger]="!isEventSynced(card.note, card.index)"
-            (click)="removeEvent(card.note, card.index)"
+        <label class="field">
+          <label>Categoría</label>
+          <select
+            class="input"
+            [ngModel]="editBuffer()?.category"
+            (ngModelChange)="onEditCategoryChange($event)"
           >
-            {{ isEventSynced(card.note, card.index) ? 'Deshacer' : 'Quitar' }}
+            @for (cat of categories; track cat) {
+              <option [value]="cat">{{ categoryLabels[cat] }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <label>Repetir</label>
+          <select
+            class="input"
+            [ngModel]="editBuffer()?.recurrence?.frequency ?? 'none'"
+            (ngModelChange)="onEditRecurrenceChange($event)"
+          >
+            <option value="none">No se repite</option>
+            <option value="daily">Cada día</option>
+            <option value="weekly">Cada semana</option>
+            <option value="monthly">Cada mes</option>
+          </select>
+        </label>
+
+        <div class="actions">
+          <button type="button" class="btn btn-secondary" [disabled]="isEditSaving()" (click)="cancelEdit()">
+            Cancelar
           </button>
+          <button type="button" class="btn btn-primary" [disabled]="isEditSaving()" (click)="saveEdit(card)">
+            Guardar
+          </button>
+        </div>
+      } @else {
+        <span class="event-category">
+          <app-category-icon [category]="card.event.category" />
+          <span>{{ categoryLabels[card.event.category] }}</span>
+          @if (recurrenceLabel(card.event.recurrence); as label) {
+            <span class="tag tag-outline">{{ label }}</span>
+          }
+        </span>
+        <div class="card-title">{{ card.event.title }}</div>
+        <div class="card-meta">{{ card.event.startDateTime | date: 'medium' }}</div>
+
+        @if (card.note.errorMessage) {
+          <p class="error">{{ card.note.errorMessage }}</p>
         }
-      </div>
+
+        <div class="actions">
+          @if (card.note.status === NoteStatus.AwaitingConfirmation) {
+            <button type="button" class="btn btn-secondary" (click)="review(card.note)">Revisar</button>
+          }
+          @if (card.note.status === NoteStatus.Error) {
+            <button type="button" class="btn btn-secondary" (click)="review(card.note)">Reintentar</button>
+          }
+          <button type="button" class="btn btn-ghost" (click)="startEdit(card)">Editar</button>
+          @if (card.note.candidateEvents.length === 1) {
+            @if (card.note.status === NoteStatus.Synced) {
+              <button type="button" class="btn btn-ghost" (click)="undo(card.note)">Deshacer</button>
+            }
+            <button type="button" class="btn btn-ghost btn-danger" (click)="delete(card.note)">Eliminar</button>
+          } @else {
+            <button
+              type="button"
+              class="btn btn-ghost"
+              [class.btn-danger]="!isEventSynced(card.note, card.index)"
+              (click)="removeEvent(card.note, card.index)"
+            >
+              {{ isEventSynced(card.note, card.index) ? 'Deshacer' : 'Quitar' }}
+            </button>
+          }
+        </div>
+      }
     </div>
   }
 </div>

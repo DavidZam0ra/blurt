@@ -6,6 +6,7 @@ import {
   HttpCode,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -18,7 +19,9 @@ import { ConfirmNoteUseCase } from '../application/confirm-note.use-case';
 import { UndoNoteUseCase } from '../application/undo-note.use-case';
 import { DeleteNoteUseCase } from '../application/delete-note.use-case';
 import { RemoveEventFromNoteUseCase } from '../application/remove-event-from-note.use-case';
+import { UpdateEventInNoteUseCase } from '../application/update-event-in-note.use-case';
 import { ConfirmNoteRequestDto } from './dto/confirm-note-request.dto';
+import { ExtractedEventDto } from './dto/extracted-event.dto';
 import { Note } from '../domain/note';
 
 @UseGuards(AuthGuard)
@@ -31,6 +34,7 @@ export class NotesController {
     private readonly undoNote: UndoNoteUseCase,
     private readonly deleteNote: DeleteNoteUseCase,
     private readonly removeEventFromNote: RemoveEventFromNoteUseCase,
+    private readonly updateEventInNote: UpdateEventInNoteUseCase,
   ) {}
 
   @Get()
@@ -70,5 +74,15 @@ export class NotesController {
     @CurrentUser() user: User,
   ): Promise<Note | null> {
     return this.removeEventFromNote.execute(id, user, index);
+  }
+
+  @Patch(':id/events/:index')
+  updateEvent(
+    @Param('id') id: string,
+    @Param('index', ParseIntPipe) index: number,
+    @Body() event: ExtractedEventDto,
+    @CurrentUser() user: User,
+  ): Promise<Note> {
+    return this.updateEventInNote.execute(id, user, index, event);
   }
 }
