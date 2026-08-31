@@ -1,0 +1,151 @@
+<div class="settings-screen">
+  <div class="settings-header">
+    <button type="button" class="btn btn-icon" (click)="goBack()" aria-label="Volver">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">
+        <path d="M10 3 5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    </button>
+    <h2>Ajustes</h2>
+  </div>
+
+  @if (isLoading()) {
+    <div class="skeleton-line" style="height: 160px; border-radius: var(--radius-md);"></div>
+  } @else {
+    <div class="card settings-section">
+      <div class="settings-section-title">Recordatorios por defecto</div>
+      <p class="settings-section-hint">
+        Se aplican a cada plan nuevo salvo que elijas otro aviso justo antes de guardarlo.
+      </p>
+
+      @if (defaultReminderOffsetsInMinutes().length > 0) {
+        <div class="reminder-choices">
+          @for (minutes of defaultReminderOffsetsInMinutes(); track minutes) {
+            <button
+              type="button"
+              class="tag reminder-choice reminder-choice-active"
+              [disabled]="isSaving()"
+              (click)="remove(minutes)"
+              [attr.aria-label]="'Quitar ' + reminderOffsetLabel(minutes)"
+            >
+              {{ reminderOffsetLabel(minutes) }} ✕
+            </button>
+          }
+        </div>
+      } @else {
+        <p class="settings-section-hint">Sin recordatorios propios — se usará el de Google Calendar.</p>
+      }
+
+      <div class="settings-subtitle">Añadir</div>
+      <div class="reminder-choices">
+        @for (choice of reminderChoices; track choice.minutes) {
+          @if (!isSelected(choice.minutes)) {
+            <button
+              type="button"
+              class="tag reminder-choice"
+              [disabled]="isSaving()"
+              (click)="add(choice.minutes)"
+            >
+              {{ choice.label }}
+            </button>
+          }
+        }
+        <button type="button" class="tag reminder-choice" [disabled]="isSaving()" (click)="openCustomForm()">
+          + Personalizado
+        </button>
+      </div>
+
+      @if (isAddingCustom()) {
+        <div class="custom-reminder-form">
+          <input
+            class="input custom-reminder-input"
+            type="number"
+            min="1"
+            [ngModel]="customValue()"
+            (ngModelChange)="customValue.set($event)"
+          />
+          <select
+            class="input custom-reminder-unit"
+            [ngModel]="customUnit()"
+            (ngModelChange)="customUnit.set($event)"
+          >
+            <option value="minutes">minutos antes</option>
+            <option value="hours">horas antes</option>
+            <option value="days">días antes</option>
+          </select>
+          <div class="custom-reminder-actions">
+            <button type="button" class="btn btn-ghost" (click)="cancelCustomForm()">Cancelar</button>
+            <button type="button" class="btn btn-primary" [disabled]="isSaving()" (click)="addCustom()">
+              Añadir
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (isLoadingCalendars()) {
+    <div class="skeleton-line" style="height: 70px; border-radius: var(--radius-md);"></div>
+  } @else {
+    <div class="card settings-section">
+      <div class="settings-section-title">Guardar en</div>
+      <p class="settings-section-hint">A qué calendario de Google se añaden tus planes.</p>
+
+      <select
+        class="input"
+        [disabled]="isSavingCalendar()"
+        [ngModel]="selectedCalendarId()"
+        (ngModelChange)="onCalendarChange($event)"
+      >
+        @for (calendar of calendars(); track calendar.id) {
+          <option [value]="calendar.id">{{ calendar.summary }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  <div class="card settings-section settings-danger-zone">
+    <div class="settings-section-title">Zona de peligro</div>
+    <p class="settings-section-hint">
+      Elimina tu cuenta de Blurt: tus notas y ajustes se borran, y dejamos de tener acceso a tu
+      Google Calendar. Los eventos que ya se guardaron en tu calendario no se eliminan.
+    </p>
+    <button type="button" class="btn btn-secondary btn-danger" (click)="openDeleteAccount()">
+      Eliminar mi cuenta
+    </button>
+  </div>
+
+  @if (isDeleteAccountOpen()) {
+    <div class="delete-account-backdrop" (click)="closeDeleteAccount()">
+      <div class="card delete-account-panel" (click)="$event.stopPropagation()">
+        <h3>¿Eliminar tu cuenta?</h3>
+        <p>
+          Esto borra tus notas y ajustes de Blurt de forma permanente y revoca el acceso a tu Google
+          Calendar. Los eventos que ya se sincronizaron se quedan en tu calendario tal cual — esto
+          no los toca. No se puede deshacer.
+        </p>
+        <div class="delete-account-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="isDeletingAccount()"
+            (click)="closeDeleteAccount()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-danger"
+            [disabled]="isDeletingAccount()"
+            (click)="confirmDeleteAccount()"
+          >
+            Sí, eliminar mi cuenta
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (appVersionLabel) {
+    <p class="settings-version">Blurt {{ appVersionLabel }}</p>
+  }
+</div>

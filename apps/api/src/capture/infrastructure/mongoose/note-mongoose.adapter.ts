@@ -69,6 +69,10 @@ export class NoteMongooseAdapter implements NoteRepositoryPort {
     }
   }
 
+  async deleteAllByUser(userId: string): Promise<void> {
+    await this.noteModel.deleteMany({ userId: new Types.ObjectId(userId) }).exec();
+  }
+
   private toNote(document: NoteDocument): Note {
     return {
       id: document.id,

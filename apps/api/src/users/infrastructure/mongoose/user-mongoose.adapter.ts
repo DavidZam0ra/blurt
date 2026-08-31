@@ -57,6 +57,23 @@ export class UserMongooseAdapter implements UserRepositoryPort {
     return this.toUser(document);
   }
 
+  async updateGoogleCalendarId(
+    userId: string,
+    googleCalendarId: string,
+  ): Promise<User> {
+    const document = await this.userModel
+      .findByIdAndUpdate(userId, { googleCalendarId }, { new: true })
+      .exec();
+    if (!document) {
+      throw new NotFoundException('User not found');
+    }
+    return this.toUser(document);
+  }
+
+  async delete(userId: string): Promise<void> {
+    await this.userModel.findByIdAndDelete(userId).exec();
+  }
+
   private toUser(document: UserDocument): User {
     return {
       id: document.id,

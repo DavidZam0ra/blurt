@@ -104,6 +104,7 @@ export class AuthController {
       email: user.email,
       name: user.name,
       pictureUrl: user.pictureUrl,
+      googleCalendarId: user.googleCalendarId,
     };
   }
 

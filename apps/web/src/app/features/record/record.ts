@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AudioRecorderService } from '../../core/audio/audio-recorder.service';
 import { CaptureVoiceNoteUseCase } from '../../core/use-cases/capture-voice-note.use-case';
 import { OnlineStatusService } from '../../core/network/online-status.service';
+import { ProfileMenu } from '../../shared/profile-menu/profile-menu';
 
 const WAVE_BAR_COUNT = 6;
 const EXAMPLE_DISPLAY_MS = 6000;
@@ -23,7 +24,7 @@ function formatElapsed(totalSeconds: number): string {
 
 @Component({
   selector: 'app-record',
-  imports: [],
+  imports: [ProfileMenu],
   templateUrl: './record.html',
   styleUrl: './record.scss',
 })

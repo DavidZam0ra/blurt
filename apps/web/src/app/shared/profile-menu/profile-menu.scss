@@ -1,0 +1,163 @@
+// The <app-profile-menu> host has no display set by default (browsers treat
+// unknown elements as inline); flex containers "blockify" a direct inline
+// child so that alone isn't the issue, but leaving it inline is still wrong
+// semantically, so set it explicitly.
+:host {
+  display: flex;
+}
+
+// The real culprit: .profile-menu (a plain block div) contains an
+// inline-flex <button>. A block box sizes its content by line boxes, and an
+// inline-level replaced-ish box like that button reserves a sliver of
+// descender space below the baseline within that line box — the classic
+// "gap under an inline image in a paragraph" quirk. That shifted the avatar
+// button ~1-2px off from the plain sibling <button> next to it, even though
+// both boxes measure 36x36. Making .profile-menu a flex container too
+// blockifies the button inside it and removes the line-box baseline math.
+.profile-menu {
+  position: relative;
+  display: flex;
+}
+
+.profile-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.profile-avatar-badge {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 2px var(--color-bg);
+}
+
+.profile-avatar-initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-accent-800);
+  color: var(--color-accent-100);
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 13px;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  animation: blurt-fade-in 0.15s ease;
+}
+
+.profile-dropdown-header {
+  padding: 8px 10px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+.profile-dropdown-name {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 13.5px;
+}
+
+.profile-dropdown-email {
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+
+.profile-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 13.5px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.profile-dropdown-badge {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.profile-dropdown-item:hover {
+  background: color-mix(in srgb, var(--color-text) 7%, transparent);
+}
+
+.profile-dropdown-item-danger {
+  color: var(--color-danger);
+}
+
+.profile-dropdown-item-danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+}
+
+.changelog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: color-mix(in srgb, black 55%, transparent);
+  animation: blurt-fade-in 0.15s ease;
+}
+
+.changelog-panel {
+  width: 100%;
+  max-width: 360px;
+  max-height: 70vh;
+  overflow-y: auto;
+  gap: 14px;
+}
+
+.changelog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h3 {
+    font-size: 16px;
+  }
+}
+
+.changelog-entry-date {
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  margin-bottom: 6px;
+}
+
+.changelog-entry-items {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+  line-height: 1.6;
+}

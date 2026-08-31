@@ -1,0 +1,64 @@
+<div class="profile-menu">
+  <button
+    type="button"
+    class="btn btn-icon icon-chip"
+    (click)="toggleMenu()"
+    [attr.aria-expanded]="isOpen()"
+    aria-label="Cuenta"
+  >
+    @if (auth.currentUser()?.pictureUrl; as pictureUrl) {
+      <img [src]="pictureUrl" alt="" class="profile-avatar-img" referrerpolicy="no-referrer" />
+    } @else {
+      <span class="profile-avatar-initials">{{ initials() }}</span>
+    }
+  </button>
+  @if (changelog.hasUnseen()) {
+    <span class="profile-avatar-badge" aria-hidden="true"></span>
+  }
+
+  @if (isOpen()) {
+    <div class="profile-dropdown">
+      <div class="profile-dropdown-header">
+        <div class="profile-dropdown-name">{{ auth.currentUser()?.name ?? auth.currentUser()?.email }}</div>
+        @if (auth.currentUser()?.name) {
+          <div class="profile-dropdown-email">{{ auth.currentUser()?.email }}</div>
+        }
+      </div>
+      <button type="button" class="profile-dropdown-item" (click)="openChangelog()">
+        Novedades
+        @if (changelog.hasUnseen()) {
+          <span class="profile-dropdown-badge" aria-hidden="true"></span>
+        }
+      </button>
+      <button type="button" class="profile-dropdown-item" (click)="goToSettings()">Ajustes</button>
+      <button type="button" class="profile-dropdown-item profile-dropdown-item-danger" (click)="logout()">
+        Cerrar sesión
+      </button>
+    </div>
+  }
+
+  @if (isChangelogOpen()) {
+    <div class="changelog-backdrop" (click)="closeChangelog()">
+      <div class="card changelog-panel" (click)="$event.stopPropagation()">
+        <div class="changelog-header">
+          <h3>Novedades</h3>
+          <button type="button" class="btn btn-icon" (click)="closeChangelog()" aria-label="Cerrar">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+              <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+          </button>
+        </div>
+        @for (entry of changelog.entries; track entry.version) {
+          <div class="changelog-entry">
+            <div class="changelog-entry-date">{{ entry.date }} · {{ entry.label }}</div>
+            <ul class="changelog-entry-items">
+              @for (item of entry.items; track item) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

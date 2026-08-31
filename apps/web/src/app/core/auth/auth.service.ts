@@ -32,4 +32,9 @@ export class AuthService {
     await firstValueFrom(this.http.post(`${API_BASE_URL}/auth/logout`, {}));
     this.currentUser.set(null);
   }
+
+  async deleteAccount(): Promise<void> {
+    await firstValueFrom(this.http.delete(`${API_BASE_URL}/account`));
+    this.currentUser.set(null);
+  }
 }

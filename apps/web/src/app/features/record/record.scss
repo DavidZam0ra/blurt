@@ -18,6 +18,12 @@
   width: auto;
 }
 
+.record-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .offline-pill {
   align-self: center;
   margin-top: 14px;

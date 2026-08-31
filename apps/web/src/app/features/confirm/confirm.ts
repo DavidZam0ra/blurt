@@ -9,18 +9,13 @@ import { Note, NoteStatus } from '../../core/models/note';
 import { ExtractedEvent, durationEndLabel, allDayRangeLabel } from '../../core/models/extracted-event';
 import { EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
 import { RecurrenceFrequency, recurrenceLabel } from '../../core/models/event-recurrence';
+import { REMINDER_CHOICES } from '../../core/models/reminder-choice';
+import { toDateTimeLocalInputValue } from '../../core/models/date-time-local';
 import { CategoryIcon } from '../../shared/category-icon/category-icon';
 
 const AUTO_CONFIRM_DELAY_IN_SECONDS = 5;
 const RING_CIRCUMFERENCE = 56.5;
 const NEW_EVENT_START_OFFSET_IN_MS = 60 * 60 * 1000;
-
-const REMINDER_CHOICES: { label: string; minutes: number }[] = [
-  { label: '15 min antes', minutes: 15 },
-  { label: '30 min antes', minutes: 30 },
-  { label: '1 h antes', minutes: 60 },
-  { label: '1 día antes', minutes: 1440 },
-];
 
 function createBlankEvent(): ExtractedEvent {
   return {
@@ -97,12 +92,7 @@ export class Confirm implements OnInit, OnDestroy {
     this.clearAutoConfirmTimer();
   }
 
-  protected toDateTimeLocal(isoDateTime: string): string {
-    const date = new Date(isoDateTime);
-    const offsetInMinutes = date.getTimezoneOffset();
-    const local = new Date(date.getTime() - offsetInMinutes * 60000);
-    return local.toISOString().slice(0, 16);
-  }
+  protected readonly toDateTimeLocal = toDateTimeLocalInputValue;
 
   protected onTitleChange(index: number, title: string): void {
     this.cancelAutoConfirm();

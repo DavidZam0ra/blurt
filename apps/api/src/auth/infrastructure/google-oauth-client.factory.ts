@@ -7,6 +7,10 @@ export const CALENDAR_SCOPES = [
   'email',
   'profile',
   'https://www.googleapis.com/auth/calendar.events',
+  // Read-only access to the list of the user's calendars — needed for the
+  // "which calendar do you want to save to" picker in Settings. Narrower
+  // than 'calendar.readonly' (which would also read event contents).
+  'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
 ];
 
 @Injectable()

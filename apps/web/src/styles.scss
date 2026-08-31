@@ -132,6 +132,20 @@ p {
   padding: 0;
   position: relative;
 }
+
+/* A circular icon "chip" — for icon-only buttons/avatars sitting next to
+   each other in a header, where a plain outline glyph (.btn-icon alone
+   paints no visible edge) can otherwise look mismatched against a filled
+   photo. flex:none guards against a flex parent shrinking/growing one but
+   not the other, which throws off both size and vertical centering. */
+.icon-chip {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--color-divider);
+  border-radius: 50%;
+  overflow: hidden;
+}
 .btn-block {
   width: 100%;
 }
@@ -208,6 +222,30 @@ p {
 .tag-outline {
   border: 1px solid var(--color-accent);
   color: var(--color-accent);
+}
+
+/* — selectable chips (reminder choices, and similar toggle groups) — */
+.reminder-choices {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.reminder-choice {
+  border: 1px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.reminder-choice:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.reminder-choice-active {
+  background: var(--color-accent-800);
+  color: var(--color-accent-100);
 }
 
 /* — animations — */

@@ -21,4 +21,5 @@ export interface NoteRepositoryPort {
   listByUser(userId: string): Promise<Note[]>;
   update(id: string, userId: string, changes: UpdateNoteInput): Promise<Note>;
   delete(id: string, userId: string): Promise<void>;
+  deleteAllByUser(userId: string): Promise<void>;
 }

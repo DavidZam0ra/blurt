@@ -7,4 +7,6 @@ export interface UserRepositoryPort {
   findByGoogleId(googleId: string): Promise<User | null>;
   upsertFromGoogleProfile(profile: GoogleProfile): Promise<User>;
   updatePreferences(userId: string, preferences: UserPreferences): Promise<User>;
+  updateGoogleCalendarId(userId: string, googleCalendarId: string): Promise<User>;
+  delete(userId: string): Promise<void>;
 }

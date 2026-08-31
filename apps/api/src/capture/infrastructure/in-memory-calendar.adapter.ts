@@ -3,12 +3,17 @@ import { randomUUID } from 'crypto';
 import {
   CalendarPort,
   GoogleCalendarCredentials,
+  GoogleCalendarListEntry,
 } from '../domain/calendar.port';
 import { ExtractedEvent } from '../domain/extracted-event';
 
 @Injectable()
 export class InMemoryCalendarAdapter implements CalendarPort {
   private readonly logger = new Logger(InMemoryCalendarAdapter.name);
+
+  listCalendars(): Promise<GoogleCalendarListEntry[]> {
+    return Promise.resolve([{ id: 'primary', summary: 'Personal', primary: true }]);
+  }
 
   createEvent(
     event: ExtractedEvent,
@@ -19,6 +24,17 @@ export class InMemoryCalendarAdapter implements CalendarPort {
       `[stub] createEvent(calendarId=${credentials.calendarId}, title="${event.title}", startDateTime=${event.startDateTime}) -> ${externalEventId}`,
     );
     return Promise.resolve(externalEventId);
+  }
+
+  updateEvent(
+    externalEventId: string,
+    event: ExtractedEvent,
+    credentials: GoogleCalendarCredentials,
+  ): Promise<void> {
+    this.logger.log(
+      `[stub] updateEvent(calendarId=${credentials.calendarId}, externalEventId=${externalEventId}, title="${event.title}")`,
+    );
+    return Promise.resolve();
   }
 
   deleteEvent(

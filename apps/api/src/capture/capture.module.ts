@@ -5,6 +5,8 @@ import { AuthModule } from '../auth/auth.module';
 import { CryptoModule } from '../shared/crypto/crypto.module';
 import { CaptureController } from './infrastructure/capture.controller';
 import { NotesController } from './infrastructure/notes.controller';
+import { CalendarSettingsController } from './infrastructure/calendar-settings.controller';
+import { AccountController } from './infrastructure/account.controller';
 import { ExtractEventFromAudioUseCase } from './application/extract-event-from-audio.use-case';
 import { CreateNoteUseCase } from './application/create-note.use-case';
 import { ListNotesUseCase } from './application/list-notes.use-case';
@@ -13,6 +15,10 @@ import { ConfirmNoteUseCase } from './application/confirm-note.use-case';
 import { UndoNoteUseCase } from './application/undo-note.use-case';
 import { DeleteNoteUseCase } from './application/delete-note.use-case';
 import { RemoveEventFromNoteUseCase } from './application/remove-event-from-note.use-case';
+import { UpdateEventInNoteUseCase } from './application/update-event-in-note.use-case';
+import { ListCalendarsUseCase } from './application/list-calendars.use-case';
+import { SelectCalendarUseCase } from './application/select-calendar.use-case';
+import { DeleteAccountUseCase } from './application/delete-account.use-case';
 import { GoogleCredentialsResolver } from './application/google-credentials.resolver';
 import { TRANSCRIPTION_PORT } from './domain/transcription.port';
 import { EVENT_EXTRACTION_PORT } from './domain/event-extraction.port';
@@ -31,7 +37,12 @@ import { NoteMongooseAdapter } from './infrastructure/mongoose/note-mongoose.ada
     CryptoModule,
     MongooseModule.forFeature([{ name: NoteEntity.name, schema: NoteSchema }]),
   ],
-  controllers: [CaptureController, NotesController],
+  controllers: [
+    CaptureController,
+    NotesController,
+    CalendarSettingsController,
+    AccountController,
+  ],
   providers: [
     ExtractEventFromAudioUseCase,
     CreateNoteUseCase,
@@ -41,6 +52,10 @@ import { NoteMongooseAdapter } from './infrastructure/mongoose/note-mongoose.ada
     UndoNoteUseCase,
     DeleteNoteUseCase,
     RemoveEventFromNoteUseCase,
+    UpdateEventInNoteUseCase,
+    ListCalendarsUseCase,
+    SelectCalendarUseCase,
+    DeleteAccountUseCase,
     GoogleCredentialsResolver,
     { provide: TRANSCRIPTION_PORT, useClass: GroqTranscriptionAdapter },
     { provide: EVENT_EXTRACTION_PORT, useClass: GroqEventExtractionAdapter },

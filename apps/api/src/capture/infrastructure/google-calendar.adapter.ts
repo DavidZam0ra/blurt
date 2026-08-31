@@ -4,6 +4,7 @@ import { auth, calendar, calendar_v3 } from '@googleapis/calendar';
 import {
   CalendarPort,
   GoogleCalendarCredentials,
+  GoogleCalendarListEntry,
 } from '../domain/calendar.port';
 import { ExtractedEvent } from '../domain/extracted-event';
 import { EventRecurrence } from '../domain/event-recurrence';
@@ -33,6 +34,23 @@ export class GoogleCalendarAdapter implements CalendarPort {
 
   constructor(private readonly configService: ConfigService) {}
 
+  async listCalendars(
+    credentials: GoogleCalendarCredentials,
+  ): Promise<GoogleCalendarListEntry[]> {
+    const { data } = await this.client(credentials).calendarList.list();
+    return (data.items ?? [])
+      .filter((item): item is typeof item & { id: string } => !!item.id)
+      // Google's calendarList also includes read-only subscriptions (public
+      // holiday calendars, calendars someone shared as a viewer, etc.) —
+      // only "writer"/"owner" calendars can actually receive new events.
+      .filter((item) => item.accessRole === 'owner' || item.accessRole === 'writer')
+      .map((item) => ({
+        id: item.id,
+        summary: item.summary ?? item.id,
+        primary: item.primary ?? undefined,
+      }));
+  }
+
   async createEvent(
     event: ExtractedEvent,
     credentials: GoogleCalendarCredentials,
@@ -50,6 +68,21 @@ export class GoogleCalendarAdapter implements CalendarPort {
       `createEvent(calendarId=${credentials.calendarId}, title="${event.title}", startDateTime=${event.startDateTime}) -> ${data.id}`,
     );
     return data.id;
+  }
+
+  async updateEvent(
+    externalEventId: string,
+    event: ExtractedEvent,
+    credentials: GoogleCalendarCredentials,
+  ): Promise<void> {
+    await this.client(credentials).events.update({
+      calendarId: credentials.calendarId,
+      eventId: externalEventId,
+      requestBody: this.toGoogleEvent(event),
+    });
+    this.logger.log(
+      `updateEvent(calendarId=${credentials.calendarId}, externalEventId=${externalEventId}, title="${event.title}")`,
+    );
   }
 
   async deleteEvent(

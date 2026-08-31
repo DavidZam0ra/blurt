@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Record } from './features/record/record';
 import { Confirm } from './features/confirm/confirm';
 import { History } from './features/history/history';
+import { Settings } from './features/settings/settings';
 import { Onboarding } from './features/onboarding/onboarding';
 import { Login } from './features/login/login';
 import { PrivacyPolicy } from './features/privacy-policy/privacy-policy';
@@ -15,4 +16,5 @@ export const routes: Routes = [
   { path: '', component: Record, canActivate: [onboardingGuard, authGuard] },
   { path: 'confirm/:id', component: Confirm, canActivate: [onboardingGuard, authGuard] },
   { path: 'history', component: History, canActivate: [onboardingGuard, authGuard] },
+  { path: 'settings', component: Settings, canActivate: [onboardingGuard, authGuard] },
 ];
