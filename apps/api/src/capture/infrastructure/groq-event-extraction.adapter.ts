@@ -38,6 +38,13 @@ const EXTRACT_EVENTS_TOOL: Groq.Chat.Completions.ChatCompletionTool = {
                   '(no timezone offset, no "Z" suffix) — the time as the speaker would read it on their own clock, ' +
                   'resolved against the reference date-time.',
               },
+              durationInMinutes: {
+                type: 'number',
+                description:
+                  'How long the event lasts, in minutes, ONLY when the speaker explicitly states a duration ' +
+                  '(e.g. "durante 2 horas" -> 120, "de una hora" -> 60, "30 minutos" -> 30). Omit entirely when no ' +
+                  'duration is stated — do not guess one.',
+              },
               isAmbiguous: {
                 type: 'boolean',
                 description:
@@ -106,6 +113,7 @@ interface ExtractedEventArguments {
   events: Array<{
     title: string;
     startDateTime: string;
+    durationInMinutes?: number;
     isAmbiguous: boolean;
     category: EventCategory;
     recurrence?: ExtractedRecurrenceArguments;
@@ -242,7 +250,9 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
               'is said — mark isAmbiguous true for it, since it could mean either Saturday or Sunday. ' +
               'Use these category hints loosely, not as a strict list: comida/cena/desayuno/brunch/café -> food; ' +
               'gimnasio/entreno/médico/dentista/fisio/consulta -> health; curro/oficina/reunión/junta/presentación/cliente -> work; ' +
-              'cumpleaños/cumple/boda/quedada/peli -> personal; vuelo/tren/viaje/hotel/maleta -> travel.',
+              'cumpleaños/cumple/boda/quedada/peli -> personal; vuelo/tren/viaje/hotel/maleta -> travel. ' +
+              'Set "durationInMinutes" only when the speaker explicitly states how long the event lasts ' +
+              '("durante 2 horas", "de una hora", "30 minutos") — never infer or guess a duration.',
           },
           { role: 'user', content: transcript },
         ],
@@ -273,6 +283,7 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
     return events.map((event) => ({
       title: event.title,
       startDateTime: localWallClockToUtcIso(event.startDateTime, timeZone),
+      durationInMinutes: event.durationInMinutes,
       isAmbiguous: event.isAmbiguous,
       category: event.category,
       reminderOffsetsInMinutes: DEFAULT_REMINDER_OFFSETS_IN_MINUTES,

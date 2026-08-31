@@ -123,7 +123,10 @@ export class GoogleCalendarAdapter implements CalendarPort {
 
   private toGoogleEvent(event: ExtractedEvent): calendar_v3.Schema$Event {
     const start = new Date(event.startDateTime);
-    const end = new Date(start.getTime() + DEFAULT_EVENT_DURATION_MS);
+    const durationMs = event.durationInMinutes
+      ? event.durationInMinutes * 60 * 1000
+      : DEFAULT_EVENT_DURATION_MS;
+    const end = new Date(start.getTime() + durationMs);
     const timeZone = event.timeZone ?? DEFAULT_TIME_ZONE;
 
     return {

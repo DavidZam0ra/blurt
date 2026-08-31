@@ -6,7 +6,7 @@ import { ConfirmVoiceNoteUseCase } from '../../core/use-cases/confirm-voice-note
 import { DeleteVoiceNoteUseCase } from '../../core/use-cases/delete-voice-note.use-case';
 import { ToastService } from '../../core/toast/toast.service';
 import { Note, NoteStatus } from '../../core/models/note';
-import { ExtractedEvent } from '../../core/models/extracted-event';
+import { ExtractedEvent, durationEndLabel } from '../../core/models/extracted-event';
 import { EVENT_CATEGORY_LABELS } from '../../core/models/event-category';
 import { RecurrenceFrequency, recurrenceLabel } from '../../core/models/event-recurrence';
 import { CategoryIcon } from '../../shared/category-icon/category-icon';
@@ -49,6 +49,7 @@ export class Confirm implements OnInit, OnDestroy {
   protected readonly isSaving = signal(false);
   protected readonly categoryLabels = EVENT_CATEGORY_LABELS;
   protected readonly recurrenceLabel = recurrenceLabel;
+  protected readonly durationEndLabel = durationEndLabel;
 
   protected readonly ringDashoffset = computed(() => {
     const secondsLeft = this.autoConfirmSecondsLeft();

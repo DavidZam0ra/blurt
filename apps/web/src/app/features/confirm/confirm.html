@@ -64,6 +64,9 @@
             [ngModel]="toDateTimeLocal(event.startDateTime)"
             (ngModelChange)="onStartDateTimeChange($index, $event)"
           />
+          @if (durationEndLabel(event); as endLabel) {
+            <span class="field-hint">{{ endLabel }}</span>
+          }
         </label>
 
         <label class="field">

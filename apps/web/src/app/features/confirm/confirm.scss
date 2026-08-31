@@ -53,6 +53,13 @@
   margin-left: auto;
 }
 
+.field-hint {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+
 .ambiguous-hint {
   display: flex;
   gap: 8px;
