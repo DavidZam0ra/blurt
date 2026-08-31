@@ -52,7 +52,9 @@
         </button>
         <div class="record-hint">
           <div>Toca y suelta tu plan</div>
-          <div class="record-example">"Comida con Ana el jueves a las 2"</div>
+          @for (example of [currentExample()]; track exampleIndex()) {
+            <div class="record-example" [class.record-example--leaving]="isExampleLeaving()">"{{ example }}"</div>
+          }
         </div>
       </div>
     }

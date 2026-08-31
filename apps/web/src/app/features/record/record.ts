@@ -5,6 +5,15 @@ import { CaptureVoiceNoteUseCase } from '../../core/use-cases/capture-voice-note
 import { OnlineStatusService } from '../../core/network/online-status.service';
 
 const WAVE_BAR_COUNT = 6;
+const EXAMPLE_DISPLAY_MS = 6000;
+const EXAMPLE_EXIT_MS = 320;
+const RECORD_EXAMPLES = [
+  'Comida con Ana el jueves a las 2',
+  'Cena a las 21:00 durante 2 horas',
+  'Viaje a Andorra del 24 al 27',
+  'Yoga todos los martes a las 7',
+  'Dentista a las 10 y gimnasio a las 6',
+];
 
 function formatElapsed(totalSeconds: number): string {
   const minutes = Math.floor(totalSeconds / 60);
@@ -29,15 +38,30 @@ export class Record implements OnDestroy {
   protected readonly elapsedSeconds = signal(0);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly waveLevels = signal<number[]>(new Array(WAVE_BAR_COUNT).fill(0.15));
+  protected readonly exampleIndex = signal(0);
+  protected readonly isExampleLeaving = signal(false);
 
   private elapsedIntervalId?: ReturnType<typeof setInterval>;
   private waveIntervalId?: ReturnType<typeof setInterval>;
+  private exampleExitTimeoutId?: ReturnType<typeof setTimeout>;
+  private readonly exampleIntervalId = setInterval(() => {
+    // Road Runner-style exit: dash the current example off to the left,
+    // then swap the text and let the next one skid in from the right.
+    this.isExampleLeaving.set(true);
+    this.exampleExitTimeoutId = setTimeout(() => {
+      this.exampleIndex.update((i) => (i + 1) % RECORD_EXAMPLES.length);
+      this.isExampleLeaving.set(false);
+    }, EXAMPLE_EXIT_MS);
+  }, EXAMPLE_DISPLAY_MS);
 
   protected readonly formattedElapsed = () => formatElapsed(this.elapsedSeconds());
+  protected readonly currentExample = () => RECORD_EXAMPLES[this.exampleIndex()];
 
   ngOnDestroy(): void {
     clearInterval(this.elapsedIntervalId);
     clearInterval(this.waveIntervalId);
+    clearInterval(this.exampleIntervalId);
+    clearTimeout(this.exampleExitTimeoutId);
   }
 
   async startRecording(): Promise<void> {

@@ -76,6 +76,7 @@
 .record-hint {
   text-align: center;
   font-size: 15px;
+  overflow: hidden;
 }
 
 .record-example {
@@ -83,6 +84,39 @@
   font-size: 12px;
   font-style: italic;
   color: color-mix(in srgb, var(--color-text) 45%, transparent);
+  animation: record-example-enter 0.38s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.record-example--leaving {
+  animation: record-example-exit 0.32s cubic-bezier(0.5, 0, 1, 0.6) forwards;
+}
+
+/* Road Runner-style hint rotation: the outgoing example dashes off to the
+   left, the next one skids in from the right and slightly overshoots
+   before settling — beep beep. */
+@keyframes record-example-enter {
+  0% {
+    transform: translateX(130%);
+    opacity: 0;
+  }
+  65% {
+    transform: translateX(-8%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes record-example-exit {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-140%);
+    opacity: 0;
+  }
 }
 
 .record-cancel {
