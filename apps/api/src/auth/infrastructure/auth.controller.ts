@@ -1,8 +1,11 @@
 import { randomBytes } from 'crypto';
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
+  Inject,
+  Patch,
   Post,
   Query,
   Res,
@@ -23,6 +26,9 @@ import {
   sessionCookieOptions,
 } from './cookie-options';
 import type { User } from '../../users/domain/user';
+import { USER_REPOSITORY_PORT } from '../../users/domain/user-repository.port';
+import type { UserRepositoryPort } from '../../users/domain/user-repository.port';
+import { UpdateUserPreferencesDto } from '../../users/infrastructure/dto/update-user-preferences.dto';
 
 const OAUTH_STATE_COOKIE_NAME = 'blurt_oauth_state';
 
@@ -33,6 +39,8 @@ export class AuthController {
     private readonly googleOAuthClientFactory: GoogleOAuthClientFactory,
     private readonly authenticateWithGoogle: AuthenticateWithGoogleUseCase,
     private readonly sessionTokenService: SessionTokenService,
+    @Inject(USER_REPOSITORY_PORT)
+    private readonly userRepository: UserRepositoryPort,
   ) {}
 
   @Get('google')
@@ -97,6 +105,24 @@ export class AuthController {
       name: user.name,
       pictureUrl: user.pictureUrl,
     };
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('me/preferences')
+  getPreferences(@CurrentUser() user: User) {
+    return user.preferences;
+  }
+
+  @UseGuards(AuthGuard)
+  @Patch('me/preferences')
+  async updatePreferences(
+    @CurrentUser() user: User,
+    @Body() dto: UpdateUserPreferencesDto,
+  ) {
+    const updated = await this.userRepository.updatePreferences(user.id, {
+      defaultReminderOffsetsInMinutes: dto.defaultReminderOffsetsInMinutes,
+    });
+    return updated.preferences;
   }
 
   @UseGuards(AuthGuard)

@@ -15,6 +15,13 @@ const AUTO_CONFIRM_DELAY_IN_SECONDS = 5;
 const RING_CIRCUMFERENCE = 56.5;
 const NEW_EVENT_START_OFFSET_IN_MS = 60 * 60 * 1000;
 
+const REMINDER_CHOICES: { label: string; minutes: number }[] = [
+  { label: '15 min antes', minutes: 15 },
+  { label: '30 min antes', minutes: 30 },
+  { label: '1 h antes', minutes: 60 },
+  { label: '1 día antes', minutes: 1440 },
+];
+
 function createBlankEvent(): ExtractedEvent {
   return {
     title: '',
@@ -51,6 +58,7 @@ export class Confirm implements OnInit, OnDestroy {
   protected readonly recurrenceLabel = recurrenceLabel;
   protected readonly durationEndLabel = durationEndLabel;
   protected readonly allDayRangeLabel = allDayRangeLabel;
+  protected readonly reminderChoices = REMINDER_CHOICES;
 
   protected readonly ringDashoffset = computed(() => {
     const secondsLeft = this.autoConfirmSecondsLeft();
@@ -111,6 +119,20 @@ export class Confirm implements OnInit, OnDestroy {
     this.updateEvent(index, {
       recurrence: frequency === 'none' ? undefined : { frequency, interval: 1 },
     });
+  }
+
+  protected isReminderChoiceActive(event: ExtractedEvent, minutes: number): boolean {
+    return (
+      event.reminderOffsetsInMinutes.length === 1 &&
+      event.reminderOffsetsInMinutes[0] === minutes
+    );
+  }
+
+  protected onReminderChoice(index: number, minutes: number): void {
+    // Deliberately does not cancel the auto-confirm countdown — picking a
+    // reminder is meant to be a quick override during that window, not an
+    // edit that requires a manual "Confirmar" like the other fields.
+    this.updateEvent(index, { reminderOffsetsInMinutes: [minutes] });
   }
 
   protected addEvent(): void {

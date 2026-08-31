@@ -38,6 +38,7 @@ export class CaptureController {
       audio.originalname,
       new Date(request.referenceDateTime),
       request.timeZone ?? DEFAULT_TIME_ZONE,
+      user.preferences.defaultReminderOffsetsInMinutes,
     );
     const note = await this.createNote.execute(user.id, events);
     return { noteId: note.id, events };

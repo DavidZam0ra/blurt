@@ -8,7 +8,6 @@ import { EventRecurrence, RECURRENCE_FREQUENCIES } from '../domain/event-recurre
 
 const LLAMA_MODEL = 'openai/gpt-oss-120b';
 const EXTRACT_EVENTS_TOOL_NAME = 'extract_calendar_events';
-const DEFAULT_REMINDER_OFFSETS_IN_MINUTES = [24 * 60, 60];
 
 const EXTRACT_EVENTS_TOOL: Groq.Chat.Completions.ChatCompletionTool = {
   type: 'function',
@@ -219,6 +218,7 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
     transcript: string,
     referenceDateTime: Date,
     timeZone: string,
+    defaultReminderOffsetsInMinutes: number[],
   ): Promise<ExtractedEvent[]> {
     const localReferenceDateTime = formatLocalReferenceDateTime(
       referenceDateTime,
@@ -300,7 +300,7 @@ export class GroqEventExtractionAdapter implements EventExtractionPort {
       endDate: event.endDate,
       isAmbiguous: event.isAmbiguous,
       category: event.category,
-      reminderOffsetsInMinutes: DEFAULT_REMINDER_OFFSETS_IN_MINUTES,
+      reminderOffsetsInMinutes: defaultReminderOffsetsInMinutes,
       timeZone,
       recurrence: event.recurrence
         ? toEventRecurrence(event.recurrence, timeZone)

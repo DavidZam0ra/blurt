@@ -1,6 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import type { EncryptedPayload } from '../../domain/user';
+import {
+  DEFAULT_REMINDER_OFFSETS_IN_MINUTES,
+  type EncryptedPayload,
+  type UserPreferences,
+} from '../../domain/user';
 
 export type UserDocument = HydratedDocument<UserEntity>;
 
@@ -14,6 +18,12 @@ class EncryptedPayloadSchema implements EncryptedPayload {
 
   @Prop({ required: true })
   authTag!: string;
+}
+
+@Schema({ _id: false })
+class UserPreferencesSchema implements UserPreferences {
+  @Prop({ type: [Number], default: DEFAULT_REMINDER_OFFSETS_IN_MINUTES })
+  defaultReminderOffsetsInMinutes!: number[];
 }
 
 @Schema({ collection: 'users', timestamps: true })
@@ -35,6 +45,9 @@ export class UserEntity {
 
   @Prop({ required: true, default: 'primary' })
   googleCalendarId!: string;
+
+  @Prop({ type: UserPreferencesSchema })
+  preferences?: UserPreferences;
 }
 
 export const UserSchema = SchemaFactory.createForClass(UserEntity);

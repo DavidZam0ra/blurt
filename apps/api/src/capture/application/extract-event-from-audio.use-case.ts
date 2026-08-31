@@ -19,12 +19,14 @@ export class ExtractEventFromAudioUseCase {
     fileName: string,
     referenceDateTime: Date,
     timeZone: string,
+    defaultReminderOffsetsInMinutes: number[],
   ): Promise<ExtractedEvent[]> {
     const transcript = await this.transcriptionPort.transcribe(audio, fileName);
     return this.eventExtractionPort.extract(
       transcript,
       referenceDateTime,
       timeZone,
+      defaultReminderOffsetsInMinutes,
     );
   }
 }

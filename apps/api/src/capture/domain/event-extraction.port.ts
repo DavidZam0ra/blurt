@@ -7,5 +7,6 @@ export interface EventExtractionPort {
     transcript: string,
     referenceDateTime: Date,
     timeZone: string,
+    defaultReminderOffsetsInMinutes: number[],
   ): Promise<ExtractedEvent[]>;
 }

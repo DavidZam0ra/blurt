@@ -85,6 +85,22 @@
           </select>
         </label>
 
+        @if (autoConfirmSecondsLeft() !== null) {
+          <div class="reminder-choices">
+            <span class="reminder-choices-label">Avisar</span>
+            @for (choice of reminderChoices; track choice.minutes) {
+              <button
+                type="button"
+                class="tag reminder-choice"
+                [class.reminder-choice-active]="isReminderChoiceActive(event, choice.minutes)"
+                (click)="onReminderChoice($index, choice.minutes)"
+              >
+                {{ choice.label }}
+              </button>
+            }
+          </div>
+        }
+
         @if (event.isAmbiguous) {
           <div class="ambiguous-hint">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">

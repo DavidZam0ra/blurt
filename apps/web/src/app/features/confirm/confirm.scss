@@ -60,6 +60,33 @@
   color: color-mix(in srgb, var(--color-text) 50%, transparent);
 }
 
+.reminder-choices {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.reminder-choices-label {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+  margin-right: 2px;
+}
+
+.reminder-choice {
+  border: 1px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.reminder-choice-active {
+  background: var(--color-accent-800);
+  color: var(--color-accent-100);
+}
+
 .ambiguous-hint {
   display: flex;
   gap: 8px;
