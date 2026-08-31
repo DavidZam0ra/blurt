@@ -11,6 +11,7 @@ import { routes } from './app.routes';
 import { provideServiceWorker } from '@angular/service-worker';
 import { AuthService } from './core/auth/auth.service';
 import { sessionInterceptor } from './core/auth/session.interceptor';
+import { AppUpdateService } from './core/update/app-update.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -26,6 +27,9 @@ export const appConfig: ApplicationConfig = {
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideAppInitializer(() => {
+      inject(AppUpdateService).init();
     }),
   ],
 };
