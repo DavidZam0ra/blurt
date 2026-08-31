@@ -28,3 +28,37 @@ services:
         sync: false
       - key: TOKEN_ENCRYPTION_KEY
         sync: false
+
+  # Preview of the `staging` branch, so changes can be checked in a real
+  # deployment before merging to main. Shares the same Google OAuth client
+  # and MongoDB as blurt-api on purpose (see CLAUDE.md / project notes) —
+  # test with a separate Google account instead of a separate DB. Its
+  # redirect URI is derived from this service's own RENDER_EXTERNAL_URL, so
+  # it must be added as an extra "Authorized redirect URI" on that same
+  # Google OAuth client in Google Cloud Console.
+  - type: web
+    name: blurt-api-staging
+    runtime: node
+    plan: free
+    branch: staging
+    rootDir: apps/api
+    buildCommand: cd ../web && API_BASE_URL='' node scripts/write-api-config.mjs && npm ci --include=dev && npm run build && cd ../api && npm ci --include=dev && npm run build && cp -r ../web/dist/web/browser dist/web
+    startCommand: node dist/main
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: TOKEN_ENCRYPTION_KEY
+        sync: false
